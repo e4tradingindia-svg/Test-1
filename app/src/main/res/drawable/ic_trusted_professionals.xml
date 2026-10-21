@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Trusted Professionals Group Silhouette Icon -->
+    <path
+        android:fillColor="#FF2A85"
+        android:pathData="M16.5,13c-1.2,0 -3.07,0.34 -4.5,1 -1.43,-0.66 -3.3,-1 -4.5,-1C5.33,13 1,14.08 1,16.25V18h15v-1.75C16,14.08 11.67,13 7.5,13zm9,3.25V18h-4v-1.75c0,-1.05 -0.85,-1.93 -2.25,-2.54 1.15,-0.47 2.65,-0.71 3.75,-0.71 2.17,0 6.5,1.08 6.5,3.25zM7.5,11c1.93,0 3.5,-1.57 3.5,-3.5S9.43,4 7.5,4 4,5.57 4,7.5 5.57,11 7.5,11zm9,-2c1.38,0 2.5,-1.12 2.5,-2.5S17.88,4 16.5,4 14,5.12 14,6.5s1.12,2.5 2.5,2.5z"/>
+</vector>

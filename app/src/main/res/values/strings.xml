@@ -1,0 +1,64 @@
+<resources>
+    <string name="app_name">SalonMate</string>
+    <string name="tagline">BOOK • BEAUTY • BE YOU</string>
+    <string name="service_scope">Men Salon  |  Women Beauty Parlour</string>
+    <string name="badge_verified">Verified\nSalons &amp; Parlours</string>
+    <string name="badge_easy_booking">Easy\nBooking</string>
+    <string name="badge_trusted">Trusted\nProfessionals</string>
+    
+    <string name="customer_portal_tag">CUSTOMER PORTAL</string>
+    <string name="customer_portal_title">CUSTOMER</string>
+    <string name="customer_portal_desc">Book salon &amp; beauty services for Men &amp; Women</string>
+    <string name="btn_continue_customer">Continue as Customer</string>
+    
+    <string name="owner_portal_tag">BUSINESS PORTAL</string>
+    <string name="owner_portal_title">SALON / PARLOUR OWNER</string>
+    <string name="owner_portal_desc">Manage your salon or parlour and grow your business</string>
+    <string name="btn_continue_owner">Continue as Salon / Parlour Owner</string>
+    
+    <string name="service_haircut">Haircut\n&amp; Styling</string>
+    <string name="service_facial">Facial\n&amp; Skin Care</string>
+    <string name="service_makeup">Makeup\n&amp; Beauty</string>
+    <string name="service_nail">Nail\nCare</string>
+    <string name="service_spa">Spa\n&amp; Relaxation</string>
+    <string name="service_beard">Beard\n&amp; Grooming</string>
+    <string name="service_more">More\nServices</string>
+    
+    <string name="footer_about">About SalonMate</string>
+    <string name="footer_support">Help &amp; Support</string>
+    <string name="footer_privacy">Privacy Policy</string>
+    <string name="content_desc_logo">SalonMate Logo</string>
+    <string name="content_desc_customer_badge">Customer Portal Icon</string>
+    <string name="content_desc_owner_badge">Salon Owner Portal Icon</string>
+    <string name="content_desc_arrow">Continue</string>
+
+    <!-- Customer Auth & Profile -->
+    <string name="customer_welcome_title">Welcome to SalonMate</string>
+    <string name="customer_welcome_subtitle">Book luxury beauty &amp; grooming services</string>
+    <string name="tab_sign_in">Sign In</string>
+    <string name="tab_create_account">Create Account</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="hint_full_name">Enter your full name</string>
+    <string name="label_mobile_number">Mobile Number</string>
+    <string name="hint_mobile_number">10-digit mobile number</string>
+    <string name="label_password">Password</string>
+    <string name="hint_password">Minimum 6 characters</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="hint_confirm_password">Re-enter password</string>
+    <string name="label_remember_me">Remember Me</string>
+    <string name="btn_sign_in">Sign In</string>
+    <string name="btn_create_account">Create Account</string>
+    <string name="link_new_to_salonmate">New customer? Create Account</string>
+    <string name="link_already_have_account">Already have an account? Sign In</string>
+    <string name="terms_privacy_notice">By continuing, you agree to SalonMate\'s Terms of Service and Privacy Policy.</string>
+    <string name="portal_title">Customer Portal</string>
+    <string name="portal_welcome_back">Welcome back,</string>
+    <string name="portal_customer_id">Customer ID:</string>
+    <string name="portal_phone">Mobile:</string>
+    <string name="btn_logout">Sign Out</string>
+    <string name="dialog_terms_title">Terms of Service</string>
+    <string name="dialog_terms_content">Welcome to SalonMate. By using our platform to book beauty and grooming services, you agree to treat salon professionals with respect and honor scheduled appointments.</string>
+    <string name="dialog_privacy_title">Privacy Policy</string>
+    <string name="dialog_privacy_content">SalonMate protects your privacy. Your name and mobile number are securely stored on your device to manage your profile and bookings. We never sell your personal information.</string>
+    <string name="btn_close">Close</string>
+</resources>
