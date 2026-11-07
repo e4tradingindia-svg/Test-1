@@ -61,4 +61,33 @@
     <string name="dialog_privacy_title">Privacy Policy</string>
     <string name="dialog_privacy_content">SalonMate protects your privacy. Your name and mobile number are securely stored on your device to manage your profile and bookings. We never sell your personal information.</string>
     <string name="btn_close">Close</string>
+
+    <!-- Salon Owner Portal & Auth -->
+    <string name="owner_welcome_title">Salon &amp; Parlour Partner</string>
+    <string name="owner_welcome_subtitle">Manage your salon, staff, services &amp; appointments</string>
+    <string name="owner_tab_sign_in">Partner Sign In</string>
+    <string name="owner_tab_register">Register Business</string>
+    <string name="owner_label_salon_name">Salon / Parlour Name</string>
+    <string name="owner_hint_salon_name">e.g. Royal Crown Unisex Salon</string>
+    <string name="owner_label_business_type">Business Type</string>
+    <string name="owner_type_men">Men Salon</string>
+    <string name="owner_type_women">Women Beauty Parlour</string>
+    <string name="owner_type_unisex">Unisex Salon &amp; Spa</string>
+    <string name="owner_btn_sign_in">Access Business Portal</string>
+    <string name="owner_btn_register">Register Salon / Parlour</string>
+    <string name="owner_link_new">New partner? Register Your Salon</string>
+    <string name="owner_link_existing">Already registered? Partner Sign In</string>
+    <string name="owner_dashboard_title">Owner Business Suite</string>
+    <string name="owner_status_verified">ACTIVE PARTNER</string>
+    <string name="owner_quick_stats">BUSINESS OVERVIEW</string>
+    <string name="owner_stat_bookings">Today\'s Bookings</string>
+    <string name="owner_stat_revenue">Est. Revenue</string>
+    <string name="owner_stat_rating">Client Rating</string>
+    <string name="owner_tools_title">MANAGEMENT TOOLS</string>
+    <string name="owner_tool_services">Services &amp; Pricing</string>
+    <string name="owner_tool_staff">Staff &amp; Barbers</string>
+    <string name="owner_tool_hours">Business Hours</string>
+    <string name="owner_tool_photos">Salon Photos</string>
+    <string name="owner_tool_bookings">Appointments</string>
+    <string name="owner_tool_notifications">Notifications</string>
 </resources>

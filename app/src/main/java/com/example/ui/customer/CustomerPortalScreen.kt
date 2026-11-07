@@ -1,6 +1,8 @@
 package com.example.ui.customer
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -80,7 +82,10 @@ fun CustomerPortalScreen(
   onLogout: () -> Unit,
   modifier: Modifier = Modifier
 ) {
-  BackHandler { onLogout() }
+  val context = LocalContext.current
+  BackHandler {
+    (context as? Activity)?.finish()
+  }
 
   val services = listOf(
     PortalServiceItem(R.drawable.ic_scissors, R.string.service_haircut),

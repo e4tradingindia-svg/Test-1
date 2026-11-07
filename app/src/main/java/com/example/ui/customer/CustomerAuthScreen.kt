@@ -101,8 +101,7 @@ fun CustomerAuthScreen(
   repository: CustomerRepository,
   modifier: Modifier = Modifier,
   initialTab: CustomerAuthTab = CustomerAuthTab.SIGN_IN,
-  initialRememberMe: Boolean = true,
-  onAuthSuccess: (CustomerEntity, Boolean) -> Unit = { _, _ -> },
+  onAuthSuccess: (CustomerEntity) -> Unit = {},
   onBackClick: () -> Unit = {}
 ) {
   BackHandler { onBackClick() }
@@ -117,7 +116,6 @@ fun CustomerAuthScreen(
   var phone by remember { mutableStateOf("") }
   var password by remember { mutableStateOf("") }
   var confirmPassword by remember { mutableStateOf("") }
-  var rememberMe by remember { mutableStateOf(initialRememberMe) }
   var isPasswordVisible by remember { mutableStateOf(false) }
   var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
@@ -551,39 +549,6 @@ fun CustomerAuthScreen(
           )
         }
 
-        // Remember Me checkbox (Only for Sign In)
-        if (currentTab == CustomerAuthTab.SIGN_IN) {
-          Spacer(modifier = Modifier.height(12.dp))
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-              ) { rememberMe = !rememberMe },
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Checkbox(
-              checked = rememberMe,
-              onCheckedChange = { rememberMe = it },
-              colors = CheckboxDefaults.colors(
-                checkedColor = GoldPrimary,
-                checkmarkColor = Color(0xFF1E1302),
-                uncheckedColor = TextSecondary
-              ),
-              modifier = Modifier.testTag("auth_remember_me_checkbox")
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-              text = stringResource(R.string.label_remember_me),
-              fontFamily = MontserratFamily,
-              fontWeight = FontWeight.Medium,
-              fontSize = 13.sp,
-              color = TextIvory
-            )
-          }
-        }
-
         Spacer(modifier = Modifier.height(20.dp))
 
         // Submit Button
@@ -602,7 +567,7 @@ fun CustomerAuthScreen(
                 isLoading = false
                 result.fold(
                   onSuccess = { customer ->
-                    onAuthSuccess(customer, rememberMe)
+                    onAuthSuccess(customer)
                   },
                   onFailure = { err ->
                     errorMessage = err.message ?: "Authentication failed. Please check your credentials."
@@ -618,7 +583,7 @@ fun CustomerAuthScreen(
                 isLoading = false
                 result.fold(
                   onSuccess = { customer ->
-                    onAuthSuccess(customer, true)
+                    onAuthSuccess(customer)
                   },
                   onFailure = { err ->
                     errorMessage = err.message ?: "Failed to create account. Please try again."

@@ -430,7 +430,8 @@ private fun CustomerPortalCard(
     shape = cardShape,
     colors = CardDefaults.cardColors(
       containerColor = Color(0xFF170B1F)
-    )
+    ),
+    onClick = onContinueClick
   ) {
     Column {
       // Top row: Info & Action on left, Character art on right
@@ -719,7 +720,8 @@ private fun OwnerPortalCard(
     shape = cardShape,
     colors = CardDefaults.cardColors(
       containerColor = Color(0xFF19120A)
-    )
+    ),
+    onClick = onContinueClick
   ) {
     Row(
       modifier = Modifier
