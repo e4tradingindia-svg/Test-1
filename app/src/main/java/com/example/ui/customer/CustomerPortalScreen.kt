@@ -1,15 +1,17 @@
 package com.example.ui.customer
 
 import android.app.Activity
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,9 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +30,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,13 +39,20 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -70,6 +78,7 @@ import com.example.ui.theme.TextIvory
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.TextWhite
+import java.io.File
 
 data class PortalServiceItem(
   val iconRes: Int,
@@ -80,6 +89,7 @@ data class PortalServiceItem(
 fun CustomerPortalScreen(
   customer: CustomerEntity,
   onLogout: () -> Unit,
+  onEditProfileClick: () -> Unit = {},
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
@@ -143,22 +153,44 @@ fun CustomerPortalScreen(
           }
         }
 
-        // Sign Out Icon Button
-        IconButton(
-          onClick = onLogout,
-          modifier = Modifier
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(LuxurySurface)
-            .border(1.dp, GoldBorder.copy(alpha = 0.6f), CircleShape)
-            .testTag("customer_logout_button")
-        ) {
-          Icon(
-            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-            contentDescription = "Sign Out",
-            tint = GoldPrimary,
-            modifier = Modifier.size(20.dp)
-          )
+        // Top right actions: Edit Profile & Sign Out
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          IconButton(
+            onClick = onEditProfileClick,
+            modifier = Modifier
+              .size(40.dp)
+              .clip(CircleShape)
+              .background(LuxurySurface)
+              .border(1.dp, GoldBorder.copy(alpha = 0.6f), CircleShape)
+              .testTag("btn_top_edit_profile")
+          ) {
+            Icon(
+              imageVector = Icons.Default.Edit,
+              contentDescription = stringResource(R.string.btn_edit_profile),
+              tint = GoldPrimary,
+              modifier = Modifier.size(18.dp)
+            )
+          }
+
+          Spacer(modifier = Modifier.width(8.dp))
+
+          // Sign Out Icon Button
+          IconButton(
+            onClick = onLogout,
+            modifier = Modifier
+              .size(40.dp)
+              .clip(CircleShape)
+              .background(LuxurySurface)
+              .border(1.dp, GoldBorder.copy(alpha = 0.6f), CircleShape)
+              .testTag("customer_logout_button")
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+              contentDescription = "Sign Out",
+              tint = GoldPrimary,
+              modifier = Modifier.size(20.dp)
+            )
+          }
         }
       }
 
@@ -180,22 +212,63 @@ fun CustomerPortalScreen(
             verticalAlignment = Alignment.Top
           ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+              // Profile Photo or Default Avatar Icon
               Box(
                 modifier = Modifier
-                  .size(48.dp)
+                  .size(52.dp)
                   .clip(CircleShape)
                   .background(LuxuryBlackElevated)
-                  .border(1.dp, GoldBorder, CircleShape),
+                  .border(1.5.dp, GoldBorder, CircleShape)
+                  .clickable { onEditProfileClick() }
+                  .testTag("portal_profile_avatar"),
                 contentAlignment = Alignment.Center
               ) {
-                Icon(
-                  imageVector = Icons.Default.Person,
-                  contentDescription = null,
-                  tint = GoldPrimary,
-                  modifier = Modifier.size(26.dp)
-                )
+                val photoUri = customer.profilePhotoUri
+                var loadedBitmap by remember(photoUri) {
+                  mutableStateOf<android.graphics.Bitmap?>(null)
+                }
+
+                if (photoUri != null) {
+                  remember(photoUri) {
+                    try {
+                      val uriParsed = Uri.parse(photoUri)
+                      if (uriParsed.scheme == "file") {
+                        val file = File(uriParsed.path ?: "")
+                        if (file.exists()) {
+                          loadedBitmap = BitmapFactory.decodeFile(file.absolutePath)
+                        }
+                      } else {
+                        context.contentResolver.openInputStream(uriParsed)?.use { stream ->
+                          loadedBitmap = BitmapFactory.decodeStream(stream)
+                        }
+                      }
+                    } catch (e: Exception) {
+                      loadedBitmap = null
+                    }
+                    true
+                  }
+                }
+
+                val bitmap = loadedBitmap
+                if (bitmap != null) {
+                  Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "Profile Photo",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                  )
+                } else {
+                  Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    tint = GoldPrimary,
+                    modifier = Modifier.size(28.dp)
+                  )
+                }
               }
+
               Spacer(modifier = Modifier.width(12.dp))
+
               Column {
                 Text(
                   text = stringResource(R.string.portal_welcome_back),
@@ -214,27 +287,30 @@ fun CustomerPortalScreen(
               }
             }
 
-            // Active Customer Status Badge
+            // Edit Profile Button pill
             Box(
               modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .background(GoldTagBg)
-                .border(0.5.dp, GoldBorder, RoundedCornerShape(6.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .border(0.5.dp, GoldBorder, RoundedCornerShape(8.dp))
+                .clickable { onEditProfileClick() }
+                .padding(horizontal = 10.dp, vertical = 6.dp)
+                .testTag("btn_edit_profile"),
+              contentAlignment = Alignment.Center
             ) {
               Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                  imageVector = Icons.Default.CheckCircle,
+                  imageVector = Icons.Default.Edit,
                   contentDescription = null,
                   tint = GoldPrimary,
-                  modifier = Modifier.size(11.dp)
+                  modifier = Modifier.size(12.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                  text = "VERIFIED",
+                  text = "EDIT PROFILE",
                   fontFamily = MontserratFamily,
                   fontWeight = FontWeight.Bold,
-                  fontSize = 9.sp,
+                  fontSize = 10.sp,
                   color = GoldPrimary,
                   letterSpacing = 0.5.sp
                 )
@@ -286,6 +362,48 @@ fun CustomerPortalScreen(
                 modifier = Modifier.testTag("customer_profile_phone")
               )
             }
+          }
+
+          // Optional Address Display Row
+          Spacer(modifier = Modifier.height(10.dp))
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(10.dp))
+              .background(LuxuryBlackElevated)
+              .clickable { onEditProfileClick() }
+              .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Icon(
+              imageVector = Icons.Default.LocationOn,
+              contentDescription = null,
+              tint = GoldPrimary,
+              modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = stringResource(R.string.portal_address_title),
+                fontFamily = MontserratFamily,
+                fontSize = 11.sp,
+                color = TextSecondary
+              )
+              Text(
+                text = if (!customer.address.isNullOrBlank()) customer.address else stringResource(R.string.portal_no_address),
+                fontFamily = MontserratFamily,
+                fontWeight = if (!customer.address.isNullOrBlank()) FontWeight.Medium else FontWeight.Normal,
+                fontSize = 12.5.sp,
+                color = if (!customer.address.isNullOrBlank()) TextIvory else TextMuted,
+                modifier = Modifier.testTag("customer_profile_address")
+              )
+            }
+            Icon(
+              imageVector = Icons.Default.Edit,
+              contentDescription = null,
+              tint = TextSecondary,
+              modifier = Modifier.size(14.dp)
+            )
           }
         }
       }

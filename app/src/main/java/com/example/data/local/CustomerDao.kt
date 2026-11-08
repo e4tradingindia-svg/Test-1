@@ -20,4 +20,7 @@ interface CustomerDao {
 
   @Query("SELECT COUNT(*) FROM customers WHERE normalizedPhone = :phone")
   suspend fun countByPhone(phone: String): Int
+
+  @Query("UPDATE customers SET profilePhotoUri = :photoUri, address = :address WHERE customerId = :customerId")
+  suspend fun updateProfile(customerId: String, photoUri: String?, address: String?)
 }

@@ -324,4 +324,53 @@ class CustomerAuthRobolectricTest {
     onCustomerClick()
     assertTrue("Customer navigation must continue working independently", navigatedToCustomer)
   }
+
+  @Test
+  fun testCustomerEditProfileAndPersistence() = runBlocking {
+    val reg = repository.registerCustomer(
+      fullName = "Samantha Hayes",
+      rawPhone = "5557788990",
+      password = "Password123!",
+      confirmPassword = "Password123!"
+    ).getOrThrow()
+
+    // Verify initial values
+    assertNull(reg.profilePhotoUri)
+    assertNull(reg.address)
+
+    // 1. Edit and save profile: add photo URI and address
+    val photoUri = "file:///data/user/0/com.example/files/profile_${reg.customerId}.jpg"
+    val address = "742 Evergreen Terrace, Springfield"
+    val updateResult = repository.updateCustomerProfile(
+      customerId = reg.customerId,
+      photoUri = photoUri,
+      address = address
+    )
+    assertTrue("Profile update should succeed", updateResult.isSuccess)
+    val updated = updateResult.getOrThrow()
+
+    // 2. Customer Name, Mobile Number and Customer ID must remain unchanged and non-editable
+    assertEquals("Samantha Hayes", updated.fullName)
+    assertEquals("5557788990", updated.normalizedPhone)
+    assertEquals(reg.customerId, updated.customerId)
+    assertEquals(photoUri, updated.profilePhotoUri)
+    assertEquals(address, updated.address)
+
+    // 3. Verify persistence after reloading from database (simulates app restart/login)
+    val reloaded = repository.getCustomerById(reg.customerId)
+    assertNotNull(reloaded)
+    assertEquals(photoUri, reloaded?.profilePhotoUri)
+    assertEquals(address, reloaded?.address)
+
+    // 4. Test clearing/editing address
+    val clearedAddressResult = repository.updateCustomerProfile(
+      customerId = reg.customerId,
+      photoUri = photoUri,
+      address = "   " // blank should become null
+    )
+    assertTrue(clearedAddressResult.isSuccess)
+    val cleared = clearedAddressResult.getOrThrow()
+    assertNull(cleared.address)
+    assertEquals(photoUri, cleared.profilePhotoUri)
+  }
 }

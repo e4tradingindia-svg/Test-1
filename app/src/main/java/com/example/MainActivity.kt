@@ -32,11 +32,14 @@ import com.example.ui.owner.SalonOwnerAuthScreen
 import com.example.ui.owner.SalonOwnerDashboardScreen
 import com.example.ui.welcome.WelcomeScreen
 
+import com.example.ui.customer.EditCustomerProfileScreen
+
 sealed interface SalonMateScreen {
   object Loading : SalonMateScreen
   object Welcome : SalonMateScreen
   object CustomerAuth : SalonMateScreen
   data class CustomerPortal(val customer: CustomerEntity) : SalonMateScreen
+  data class EditCustomerProfile(val customer: CustomerEntity) : SalonMateScreen
   object OwnerAuth : SalonMateScreen
   data class OwnerDashboard(val profile: OwnerBusinessProfile) : SalonMateScreen
 }
@@ -138,9 +141,26 @@ fun SalonMateApp(
       CustomerPortalScreen(
         customer = screen.customer,
         modifier = modifier,
+        onEditProfileClick = {
+          currentScreen = SalonMateScreen.EditCustomerProfile(screen.customer)
+        },
         onLogout = {
           sessionManager.clearSession()
           currentScreen = SalonMateScreen.Welcome
+        }
+      )
+    }
+
+    is SalonMateScreen.EditCustomerProfile -> {
+      EditCustomerProfileScreen(
+        customer = screen.customer,
+        repository = repository,
+        modifier = modifier,
+        onProfileUpdated = { updatedCustomer ->
+          currentScreen = SalonMateScreen.CustomerPortal(updatedCustomer)
+        },
+        onBack = {
+          currentScreen = SalonMateScreen.CustomerPortal(screen.customer)
         }
       )
     }

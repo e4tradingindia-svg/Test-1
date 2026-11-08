@@ -127,4 +127,25 @@ class CustomerRepository(private val customerDao: CustomerDao) {
   suspend fun getCustomerById(customerId: String): CustomerEntity? {
     return customerDao.getCustomerById(customerId)
   }
+
+  /**
+   * Updates customer profile photo and address.
+   * Keeps customerId, fullName, normalizedPhone, and credentials unchanged.
+   */
+  suspend fun updateCustomerProfile(
+    customerId: String,
+    photoUri: String?,
+    address: String?
+  ): Result<CustomerEntity> {
+    val existing = customerDao.getCustomerById(customerId)
+      ?: return Result.failure(IllegalArgumentException("Customer account not found."))
+
+    val trimmedAddress = address?.trim()?.ifEmpty { null }
+    customerDao.updateProfile(customerId, photoUri, trimmedAddress)
+
+    val updated = customerDao.getCustomerById(customerId)
+      ?: return Result.failure(IllegalStateException("Failed to reload updated customer profile."))
+
+    return Result.success(updated)
+  }
 }

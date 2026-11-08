@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.data.model.CustomerEntity
 
-@Database(entities = [CustomerEntity::class], version = 1, exportSchema = false)
+@Database(entities = [CustomerEntity::class], version = 2, exportSchema = false)
 abstract class SalonMateDatabase : RoomDatabase() {
 
   abstract fun customerDao(): CustomerDao

@@ -19,5 +19,7 @@ data class CustomerEntity(
   val normalizedPhone: String,
   val passwordHash: String,
   val passwordSalt: String,
+  val profilePhotoUri: String? = null,
+  val address: String? = null,
   val createdAt: Long = System.currentTimeMillis()
 )
