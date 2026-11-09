@@ -91,10 +91,16 @@ import kotlinx.coroutines.launch
 
 data class OwnerBusinessProfile(
   val ownerId: String,
+  val salonId: String = ownerId,
   val ownerName: String,
   val salonName: String,
   val mobileNumber: String,
-  val businessType: String
+  val businessType: String,
+  val bannerUri: String? = null,
+  val address: String? = null,
+  val latitude: Double? = null,
+  val longitude: Double? = null,
+  val isActive: Boolean = true
 )
 
 enum class OwnerAuthTab {

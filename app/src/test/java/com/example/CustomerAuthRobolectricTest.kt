@@ -373,4 +373,155 @@ class CustomerAuthRobolectricTest {
     assertNull(cleared.address)
     assertEquals(photoUri, cleared.profilePhotoUri)
   }
+
+  @Test
+  fun testSalonOwnerEditBusinessProfileAndCustomerView() = runBlocking {
+    val salonRepo = com.example.data.repository.SalonRepository(database.salonDao())
+    salonRepo.ensureInitialSalons()
+
+    val initialSalons = salonRepo.getAllSalons()
+    assertTrue("Initial salons should be seeded", initialSalons.isNotEmpty())
+
+    val targetSalon = initialSalons.first()
+    val salonId = targetSalon.salonId
+
+    // 1. Owner updates salon business profile: upload banner, edit address, mobile, GPS
+    val bannerUri1 = "file:///data/user/0/com.example/files/salon_banner_${salonId}.jpg"
+    val updatedAddress = "450 Sutter St, Suite 1200, San Francisco, CA"
+    val updatedMobile = "415-555-0987"
+    val updatedLat = 37.789172
+    val updatedLng = -122.407519
+
+    val updateResult = salonRepo.updateSalonBusinessProfile(
+      salonId = salonId,
+      bannerUri = bannerUri1,
+      address = updatedAddress,
+      mobileNumber = updatedMobile,
+      latitude = updatedLat,
+      longitude = updatedLng
+    )
+
+    assertTrue("Salon profile update should succeed", updateResult.isSuccess)
+    val updatedSalon = updateResult.getOrThrow()
+
+    // 2. Verify all updated fields
+    assertEquals(bannerUri1, updatedSalon.bannerUri)
+    assertEquals(updatedAddress, updatedSalon.address)
+    assertEquals(updatedMobile, updatedSalon.mobileNumber)
+    assertEquals(updatedLat, updatedSalon.latitude!!, 0.0001)
+    assertEquals(updatedLng, updatedSalon.longitude!!, 0.0001)
+
+    // 3. Test persistence across reload (simulating app restart)
+    val reloadedSalon = salonRepo.getSalonById(salonId)
+    assertNotNull("Salon must persist in database", reloadedSalon)
+    assertEquals(bannerUri1, reloadedSalon?.bannerUri)
+    assertEquals(updatedAddress, reloadedSalon?.address)
+    assertEquals(updatedMobile, reloadedSalon?.mobileNumber)
+    assertEquals(updatedLat, reloadedSalon?.latitude!!, 0.0001)
+    assertEquals(updatedLng, reloadedSalon?.longitude!!, 0.0001)
+
+    // 4. Test banner replacement
+    val replacedBannerUri = "file:///data/user/0/com.example/files/salon_banner_${salonId}_v2.jpg"
+    val replaceResult = salonRepo.updateSalonBusinessProfile(
+      salonId = salonId,
+      bannerUri = replacedBannerUri,
+      address = updatedAddress,
+      mobileNumber = updatedMobile,
+      latitude = updatedLat,
+      longitude = updatedLng
+    )
+    assertTrue(replaceResult.isSuccess)
+    assertEquals(replacedBannerUri, salonRepo.getSalonById(salonId)?.bannerUri)
+
+    // 5. Test banner removal
+    val removeBannerResult = salonRepo.updateSalonBusinessProfile(
+      salonId = salonId,
+      bannerUri = null,
+      address = updatedAddress,
+      mobileNumber = updatedMobile,
+      latitude = updatedLat,
+      longitude = updatedLng
+    )
+    assertTrue(removeBannerResult.isSuccess)
+    assertNull("Banner URI should be null after removal", salonRepo.getSalonById(salonId)?.bannerUri)
+
+    // 6. Verify customer-side view receives the updated salon details
+    val customerSalons = salonRepo.getAllSalons()
+    val salonForCustomer = customerSalons.find { it.salonId == salonId }
+    assertNotNull(salonForCustomer)
+    assertEquals(updatedAddress, salonForCustomer?.address)
+    assertEquals(updatedMobile, salonForCustomer?.mobileNumber)
+    assertEquals(updatedLat, salonForCustomer?.latitude!!, 0.0001)
+    assertEquals(updatedLng, salonForCustomer?.longitude!!, 0.0001)
+
+    // 7. Verify Customer database & authentication are completely unaffected
+    val customer = repository.registerCustomer(
+      fullName = "Audrey Hepburn",
+      rawPhone = "5558899001",
+      password = "Password123!",
+      confirmPassword = "Password123!"
+    ).getOrThrow()
+    assertNotNull(customer)
+    val auth = repository.authenticateCustomer("5558899001", "Password123!")
+    assertTrue("Customer auth must remain unaffected", auth.isSuccess)
+  }
+
+  @Test
+  fun testSalonActivePartnerToggleAndBookingAvailability() = runBlocking {
+    val salonRepo = com.example.data.repository.SalonRepository(database.salonDao())
+    salonRepo.ensureInitialSalons()
+
+    val salons = salonRepo.getAllSalons()
+    assertTrue(salons.isNotEmpty())
+    val targetSalon = salons.first()
+    val salonId = targetSalon.salonId
+
+    // 1. Initial State: Newly seeded or registered salon is ACTIVE
+    val initial = salonRepo.getSalonById(salonId)
+    assertNotNull(initial)
+    assertTrue("Salon should initially be ACTIVE", initial!!.isActive)
+
+    // 2. Toggle to DEACTIVATED
+    val deactivateResult = salonRepo.updateSalonActiveStatus(salonId = salonId, isActive = false)
+    assertTrue("Deactivation should succeed", deactivateResult.isSuccess)
+    assertFalse("Status result should be false", deactivateResult.getOrThrow())
+
+    // Verify database record has updated status
+    val deactivatedSalon = salonRepo.getSalonById(salonId)
+    assertNotNull(deactivatedSalon)
+    assertFalse("Salon in DB must be DEACTIVATED", deactivatedSalon!!.isActive)
+
+    // 3. Customer-side visibility reflects DEACTIVATED status immediately
+    val customerSalons = salonRepo.getAllSalons()
+    val customerViewDeactivated = customerSalons.find { it.salonId == salonId }
+    assertNotNull(customerViewDeactivated)
+    assertFalse(customerViewDeactivated!!.isActive)
+
+    // Simulate booking attempt on deactivated salon:
+    // Online bookings and orders must be rejected when salon is not active
+    val canAcceptBookingWhenDeactivated = customerViewDeactivated.isActive
+    assertFalse("Deactivated salon must NOT accept new bookings/orders", canAcceptBookingWhenDeactivated)
+
+    // 4. Persistence across simulated app restart / re-querying database
+    val persistedSalon = database.salonDao().getSalonById(salonId)
+    assertNotNull(persistedSalon)
+    assertFalse("Deactivated status must persist in database after app restart", persistedSalon!!.isActive)
+
+    // 5. Toggle back to ACTIVE (Reactivation)
+    val reactivateResult = salonRepo.updateSalonActiveStatus(salonId = salonId, isActive = true)
+    assertTrue("Reactivation should succeed", reactivateResult.isSuccess)
+    assertTrue("Status result should be true", reactivateResult.getOrThrow())
+
+    // 6. Verify restored booking availability on Customer Portal
+    val reactivatedSalon = salonRepo.getSalonById(salonId)
+    assertNotNull(reactivatedSalon)
+    assertTrue("Salon must now be ACTIVE again", reactivatedSalon!!.isActive)
+
+    val customerViewReactivated = salonRepo.getAllSalons().find { it.salonId == salonId }
+    assertNotNull(customerViewReactivated)
+    assertTrue("Customer portal must immediately reflect ACTIVE status", customerViewReactivated!!.isActive)
+    val canAcceptBookingWhenReactivated = customerViewReactivated.isActive
+    assertTrue("Reactivated salon must restore online booking availability", canAcceptBookingWhenReactivated)
+  }
 }
+

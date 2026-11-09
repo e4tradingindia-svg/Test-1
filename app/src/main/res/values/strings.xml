@@ -103,4 +103,29 @@
     <string name="owner_tool_photos">Salon Photos</string>
     <string name="owner_tool_bookings">Appointments</string>
     <string name="owner_tool_notifications">Notifications</string>
+
+    <!-- Salon Owner Edit Profile Strings -->
+    <string name="owner_edit_profile_title">Edit Business Profile</string>
+    <string name="owner_edit_profile_subtitle">Update salon banner, address, contact and GPS location</string>
+    <string name="owner_label_banner">Salon Banner / Poster</string>
+    <string name="owner_btn_upload_banner">Upload Banner</string>
+    <string name="owner_btn_replace_banner">Replace Banner</string>
+    <string name="owner_btn_remove_banner">Remove Banner</string>
+    <string name="owner_label_salon_address">Salon Address</string>
+    <string name="owner_hint_salon_address">e.g. 450 Grand Avenue, Suite 102, Metro City</string>
+    <string name="owner_label_contact_phone">Salon Mobile Number</string>
+    <string name="owner_label_gps">Salon GPS Location</string>
+    <string name="owner_btn_fetch_gps">Use Phone GPS Location</string>
+    <string name="owner_btn_manual_gps">Enter GPS Manually</string>
+    <string name="owner_hint_latitude">Latitude (e.g. 37.7749)</string>
+    <string name="owner_hint_longitude">Longitude (e.g. -122.4194)</string>
+    <string name="owner_gps_status_set">GPS coordinates configured</string>
+    <string name="owner_gps_status_unset">No GPS coordinates set yet</string>
+
+    <!-- Customer Salon Listings & Details -->
+    <string name="customer_section_featured_salons">FEATURED SALONS &amp; PARLOURS</string>
+    <string name="customer_btn_view_salon">View Salon</string>
+    <string name="customer_btn_get_directions">Get Directions</string>
+    <string name="customer_btn_call_salon">Call Salon</string>
+    <string name="customer_salon_details_title">Salon Details</string>
 </resources>

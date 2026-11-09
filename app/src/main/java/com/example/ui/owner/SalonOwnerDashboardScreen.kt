@@ -1,10 +1,14 @@
 package com.example.ui.owner
 
 import android.app.Activity
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,12 +30,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Storefront
@@ -43,19 +50,29 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
+import com.example.data.repository.SalonRepository
 import com.example.ui.components.SalonMateLogoBadge
 import com.example.ui.theme.GoldAccent
 import com.example.ui.theme.GoldBorder
@@ -66,12 +83,11 @@ import com.example.ui.theme.LuxuryBlackElevated
 import com.example.ui.theme.LuxurySurface
 import com.example.ui.theme.MontserratFamily
 import com.example.ui.theme.OwnerCardBg
-import com.example.ui.theme.PinkBorder
-import com.example.ui.theme.PinkPrimary
 import com.example.ui.theme.TextIvory
-import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.TextWhite
+import kotlinx.coroutines.launch
+import java.io.File
 
 data class OwnerManagementTool(
   val titleRes: Int,
@@ -82,10 +98,21 @@ data class OwnerManagementTool(
 @Composable
 fun SalonOwnerDashboardScreen(
   profile: OwnerBusinessProfile,
+  salonRepository: SalonRepository? = null,
   onLogout: () -> Unit,
+  onEditProfileClick: () -> Unit = {},
+  onToggleActiveStatus: (Boolean) -> Unit = {},
   modifier: Modifier = Modifier
 ) {
   val context = LocalContext.current
+  val coroutineScope = rememberCoroutineScope()
+  var localIsActive by remember(profile.salonId) { mutableStateOf(profile.isActive) }
+
+  // Observe persisted database state if repository is available
+  val dbSalon by salonRepository?.observeSalonById(profile.salonId)?.collectAsState(initial = null)
+    ?: remember { mutableStateOf(null) }
+  val currentIsActive = dbSalon?.isActive ?: localIsActive
+
   BackHandler {
     (context as? Activity)?.finish()
   }
@@ -146,22 +173,44 @@ fun SalonOwnerDashboardScreen(
           }
         }
 
-        // Sign Out Icon Button
-        IconButton(
-          onClick = onLogout,
-          modifier = Modifier
-            .size(42.dp)
-            .clip(CircleShape)
-            .background(LuxurySurface)
-            .border(1.dp, GoldBorder.copy(alpha = 0.6f), CircleShape)
-            .testTag("owner_logout_icon_button")
-        ) {
-          Icon(
-            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-            contentDescription = "Sign Out Business",
-            tint = GoldPrimary,
-            modifier = Modifier.size(20.dp)
-          )
+        // Top right actions: ✏️ Edit Profile & Sign Out
+        Row(verticalAlignment = Alignment.CenterVertically) {
+          IconButton(
+            onClick = onEditProfileClick,
+            modifier = Modifier
+              .size(40.dp)
+              .clip(CircleShape)
+              .background(LuxurySurface)
+              .border(1.dp, GoldBorder.copy(alpha = 0.6f), CircleShape)
+              .testTag("owner_edit_profile_top_button")
+          ) {
+            Icon(
+              imageVector = Icons.Default.Edit,
+              contentDescription = "Edit Business Profile",
+              tint = GoldPrimary,
+              modifier = Modifier.size(18.dp)
+            )
+          }
+
+          Spacer(modifier = Modifier.width(8.dp))
+
+          // Sign Out Icon Button
+          IconButton(
+            onClick = onLogout,
+            modifier = Modifier
+              .size(40.dp)
+              .clip(CircleShape)
+              .background(LuxurySurface)
+              .border(1.dp, GoldBorder.copy(alpha = 0.6f), CircleShape)
+              .testTag("owner_logout_icon_button")
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+              contentDescription = "Sign Out Business",
+              tint = GoldPrimary,
+              modifier = Modifier.size(20.dp)
+            )
+          }
         }
       }
 
@@ -177,12 +226,61 @@ fun SalonOwnerDashboardScreen(
         border = BorderStroke(1.5.dp, GoldBorder)
       ) {
         Column(modifier = Modifier.padding(18.dp)) {
+          // Banner thumbnail if uploaded
+          val bannerUri = profile.bannerUri
+          var bannerBitmap by remember(bannerUri) {
+            mutableStateOf<android.graphics.Bitmap?>(null)
+          }
+          if (bannerUri != null) {
+            remember(bannerUri) {
+              try {
+                val parsed = Uri.parse(bannerUri)
+                if (parsed.scheme == "file") {
+                  val f = File(parsed.path ?: "")
+                  if (f.exists()) {
+                    bannerBitmap = BitmapFactory.decodeFile(f.absolutePath)
+                  }
+                } else {
+                  context.contentResolver.openInputStream(parsed)?.use { s ->
+                    bannerBitmap = BitmapFactory.decodeStream(s)
+                  }
+                }
+              } catch (e: Exception) {
+                bannerBitmap = null
+              }
+              true
+            }
+          }
+
+          val bBitmap = bannerBitmap
+          if (bBitmap != null) {
+            Box(
+              modifier = Modifier
+                .fillMaxWidth()
+                .height(110.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .border(1.dp, GoldBorder.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                .clickable { onEditProfileClick() }
+            ) {
+              Image(
+                bitmap = bBitmap.asImageBitmap(),
+                contentDescription = "Salon Banner",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+              )
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+          }
+
           Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
           ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+              modifier = Modifier.weight(1f),
+              verticalAlignment = Alignment.CenterVertically
+            ) {
               Box(
                 modifier = Modifier
                   .size(50.dp)
@@ -199,7 +297,7 @@ fun SalonOwnerDashboardScreen(
                 )
               }
               Spacer(modifier = Modifier.width(12.dp))
-              Column {
+              Column(modifier = Modifier.weight(1f)) {
                 Text(
                   text = profile.salonName,
                   fontFamily = MontserratFamily,
@@ -217,27 +315,30 @@ fun SalonOwnerDashboardScreen(
               }
             }
 
-            // Partner Status Badge
+            // ✏️ Edit Button Badge
             Box(
               modifier = Modifier
-                .clip(RoundedCornerShape(6.dp))
+                .clip(RoundedCornerShape(8.dp))
                 .background(GoldTagBg)
-                .border(0.5.dp, GoldBorder, RoundedCornerShape(6.dp))
-                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .border(0.5.dp, GoldBorder, RoundedCornerShape(8.dp))
+                .clickable { onEditProfileClick() }
+                .padding(horizontal = 8.dp, vertical = 5.dp)
+                .testTag("owner_edit_profile_badge"),
+              contentAlignment = Alignment.Center
             ) {
               Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                  imageVector = Icons.Default.CheckCircle,
-                  contentDescription = null,
+                  imageVector = Icons.Default.Edit,
+                  contentDescription = "Edit Profile",
                   tint = GoldPrimary,
-                  modifier = Modifier.size(11.dp)
+                  modifier = Modifier.size(12.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                  text = stringResource(R.string.owner_status_verified),
+                  text = "EDIT",
                   fontFamily = MontserratFamily,
                   fontWeight = FontWeight.Bold,
-                  fontSize = 9.sp,
+                  fontSize = 10.sp,
                   color = GoldPrimary,
                   letterSpacing = 0.5.sp
                 )
@@ -245,7 +346,201 @@ fun SalonOwnerDashboardScreen(
             }
           }
 
-          Spacer(modifier = Modifier.height(16.dp))
+          Spacer(modifier = Modifier.height(14.dp))
+
+          // Active Partner Clickable Horizontal Toggle Card
+          Card(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(12.dp))
+              .clickable {
+                val newStatus = !currentIsActive
+                localIsActive = newStatus
+                coroutineScope.launch {
+                  salonRepository?.updateSalonActiveStatus(profile.salonId, newStatus)
+                  onToggleActiveStatus(newStatus)
+                }
+              }
+              .testTag("active_partner_toggle_button"),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(
+              containerColor = if (currentIsActive) Color(0xFF0C2414) else Color(0xFF2B0A0D)
+            ),
+            border = BorderStroke(
+              width = 1.dp,
+              color = if (currentIsActive) Color(0xFF2E7D32) else Color(0xFFD32F2F)
+            )
+          ) {
+            Row(
+              modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+              // Left: Status Icon and Horizontal Text Info
+              Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+              ) {
+                Box(
+                  modifier = Modifier
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(if (currentIsActive) Color(0xFF1B4D27) else Color(0xFF4A1217)),
+                  contentAlignment = Alignment.Center
+                ) {
+                  Icon(
+                    imageVector = if (currentIsActive) Icons.Default.CheckCircle else Icons.Default.Cancel,
+                    contentDescription = null,
+                    tint = if (currentIsActive) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                    modifier = Modifier.size(16.dp)
+                  )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                      text = "Active Partner:",
+                      fontFamily = MontserratFamily,
+                      fontWeight = FontWeight.SemiBold,
+                      fontSize = 12.sp,
+                      color = TextIvory
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                      text = if (currentIsActive) "ACTIVE" else "DEACTIVATED",
+                      fontFamily = MontserratFamily,
+                      fontWeight = FontWeight.Bold,
+                      fontSize = 12.sp,
+                      color = if (currentIsActive) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                      modifier = Modifier.testTag("active_partner_status_text")
+                    )
+                  }
+                  Text(
+                    text = if (currentIsActive)
+                      "Online • Can receive customer bookings/orders"
+                    else
+                      "Unavailable • Cannot receive new online bookings/orders",
+                    fontFamily = MontserratFamily,
+                    fontSize = 10.5.sp,
+                    color = if (currentIsActive) Color(0xFFA5D6A7) else Color(0xFFFFB4C0),
+                    maxLines = 1
+                  )
+                }
+              }
+
+              Spacer(modifier = Modifier.width(8.dp))
+
+              // Right: Horizontal Switch Button / Badge
+              Box(
+                modifier = Modifier
+                  .clip(RoundedCornerShape(20.dp))
+                  .background(if (currentIsActive) Color(0xFF143B1E) else Color(0xFF3E0E13))
+                  .border(
+                    width = 1.dp,
+                    color = if (currentIsActive) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                    shape = RoundedCornerShape(20.dp)
+                  )
+                  .padding(horizontal = 12.dp, vertical = 6.dp)
+                  .testTag("active_partner_switch_badge"),
+                contentAlignment = Alignment.Center
+              ) {
+                Row(
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.Center
+                ) {
+                  Box(
+                    modifier = Modifier
+                      .size(8.dp)
+                      .clip(CircleShape)
+                      .background(if (currentIsActive) Color(0xFF4CAF50) else Color(0xFFFF5252))
+                  )
+                  Spacer(modifier = Modifier.width(6.dp))
+                  Text(
+                    text = if (currentIsActive) "ACTIVE" else "DEACTIVATED",
+                    fontFamily = MontserratFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.5.sp,
+                    color = if (currentIsActive) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                    letterSpacing = 0.5.sp
+                  )
+                }
+              }
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
+
+          // Address & Mobile Contact Details Row
+          Column(
+            modifier = Modifier
+              .fillMaxWidth()
+              .clip(RoundedCornerShape(10.dp))
+              .background(LuxuryBlackElevated)
+              .clickable { onEditProfileClick() }
+              .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+          ) {
+            // Address
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(
+                imageVector = Icons.Default.LocationOn,
+                contentDescription = null,
+                tint = GoldPrimary,
+                modifier = Modifier.size(16.dp)
+              )
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = if (!profile.address.isNullOrBlank()) profile.address else "Tap to add salon address",
+                fontFamily = MontserratFamily,
+                fontSize = 12.sp,
+                color = if (!profile.address.isNullOrBlank()) TextIvory else TextSecondary,
+                modifier = Modifier.testTag("owner_profile_address_text")
+              )
+            }
+
+            // Mobile
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(
+                imageVector = Icons.Default.Phone,
+                contentDescription = null,
+                tint = GoldPrimary,
+                modifier = Modifier.size(16.dp)
+              )
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = profile.mobileNumber,
+                fontFamily = MontserratFamily,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextWhite,
+                modifier = Modifier.testTag("owner_profile_mobile_text")
+              )
+            }
+
+            // GPS coordinates if available
+            if (profile.latitude != null && profile.longitude != null) {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                  imageVector = Icons.Default.CheckCircle,
+                  contentDescription = null,
+                  tint = GoldAccent,
+                  modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                  text = "GPS: ${profile.latitude}, ${profile.longitude}",
+                  fontFamily = MontserratFamily,
+                  fontSize = 11.sp,
+                  color = GoldAccent,
+                  modifier = Modifier.testTag("owner_profile_gps_text")
+                )
+              }
+            }
+          }
+
+          Spacer(modifier = Modifier.height(14.dp))
 
           // Detail stats row
           Row(

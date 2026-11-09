@@ -80,6 +80,8 @@ import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.TextWhite
 import java.io.File
 
+import com.example.data.model.SalonEntity
+
 data class PortalServiceItem(
   val iconRes: Int,
   val titleRes: Int
@@ -88,6 +90,8 @@ data class PortalServiceItem(
 @Composable
 fun CustomerPortalScreen(
   customer: CustomerEntity,
+  salons: List<SalonEntity> = emptyList(),
+  onSalonSelected: (SalonEntity) -> Unit = {},
   onLogout: () -> Unit,
   onEditProfileClick: () -> Unit = {},
   modifier: Modifier = Modifier
@@ -482,6 +486,320 @@ fun CustomerPortalScreen(
             }
             if (rowServices.size == 1) {
               Spacer(modifier = Modifier.weight(1f))
+            }
+          }
+        }
+      }
+
+      Spacer(modifier = Modifier.height(24.dp))
+
+      // Section Title: Featured Salons & Parlours
+      if (salons.isNotEmpty()) {
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Text(
+            text = "FEATURED SALONS & PARLOURS",
+            fontFamily = MontserratFamily,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            color = GoldPrimary,
+            letterSpacing = 1.sp
+          )
+          Text(
+            text = "${salons.size} Verified",
+            fontFamily = MontserratFamily,
+            fontSize = 11.sp,
+            color = TextSecondary
+          )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Column(
+          modifier = Modifier.fillMaxWidth(),
+          verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+          salons.forEach { salon ->
+            Card(
+              modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onSalonSelected(salon) }
+                .testTag("salon_listing_card_${salon.salonId}"),
+              shape = RoundedCornerShape(14.dp),
+              colors = CardDefaults.cardColors(containerColor = LuxurySurface),
+              border = BorderStroke(1.dp, GoldBorder.copy(alpha = 0.5f))
+            ) {
+              Column {
+                // Salon Banner Preview
+                Box(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .height(130.dp)
+                    .background(LuxuryBlackElevated)
+                ) {
+                  val bUri = salon.bannerUri
+                  var bBitmap by remember(bUri) {
+                    mutableStateOf<android.graphics.Bitmap?>(null)
+                  }
+                  if (bUri != null) {
+                    remember(bUri) {
+                      try {
+                        val parsed = Uri.parse(bUri)
+                        if (parsed.scheme == "file") {
+                          val f = File(parsed.path ?: "")
+                          if (f.exists()) {
+                            bBitmap = BitmapFactory.decodeFile(f.absolutePath)
+                          }
+                        } else {
+                          context.contentResolver.openInputStream(parsed)?.use { s ->
+                            bBitmap = BitmapFactory.decodeStream(s)
+                          }
+                        }
+                      } catch (e: Exception) {
+                        bBitmap = null
+                      }
+                      true
+                    }
+                  }
+
+                  val loaded = bBitmap
+                  if (loaded != null) {
+                    Image(
+                      bitmap = loaded.asImageBitmap(),
+                      contentDescription = "Salon Banner",
+                      modifier = Modifier.fillMaxSize(),
+                      contentScale = ContentScale.Crop
+                    )
+                  } else {
+                    Image(
+                      painter = painterResource(id = R.drawable.hero_salon_banner),
+                      contentDescription = "Default Salon Banner",
+                      modifier = Modifier.fillMaxSize(),
+                      contentScale = ContentScale.Crop
+                    )
+                  }
+
+                  // Rating pill & Status Pill over banner
+                  Row(
+                    modifier = Modifier
+                      .fillMaxWidth()
+                      .padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    // Status Pill (ACTIVE in Green / DEACTIVATED in Red)
+                    Box(
+                      modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(if (salon.isActive) Color(0xFF0C2414).copy(alpha = 0.9f) else Color(0xFF2B0A0D).copy(alpha = 0.9f))
+                        .border(
+                          0.5.dp,
+                          if (salon.isActive) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                          RoundedCornerShape(6.dp)
+                        )
+                        .padding(horizontal = 7.dp, vertical = 3.dp)
+                        .testTag("portal_salon_status_badge_${salon.salonId}")
+                    ) {
+                      Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                          modifier = Modifier
+                            .size(6.dp)
+                            .clip(CircleShape)
+                            .background(if (salon.isActive) Color(0xFF4CAF50) else Color(0xFFFF5252))
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                          text = if (salon.isActive) "ACTIVE" else "DEACTIVATED",
+                          fontFamily = MontserratFamily,
+                          fontWeight = FontWeight.Bold,
+                          fontSize = 10.sp,
+                          color = if (salon.isActive) Color(0xFF4CAF50) else Color(0xFFFF5252)
+                        )
+                      }
+                    }
+
+                    // Rating pill over banner
+                    Box(
+                      modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(LuxuryBlack.copy(alpha = 0.85f))
+                        .border(0.5.dp, GoldBorder, RoundedCornerShape(6.dp))
+                        .padding(horizontal = 7.dp, vertical = 3.dp)
+                    ) {
+                      Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                          imageVector = Icons.Default.CheckCircle,
+                          contentDescription = null,
+                          tint = GoldPrimary,
+                          modifier = Modifier.size(11.dp)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                          text = "${salon.rating} ★",
+                          fontFamily = MontserratFamily,
+                          fontWeight = FontWeight.Bold,
+                          fontSize = 11.sp,
+                          color = GoldPrimary
+                        )
+                      }
+                    }
+                  }
+                }
+
+                // Info details
+                Column(modifier = Modifier.padding(14.dp)) {
+                  Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Text(
+                      text = salon.salonName,
+                      fontFamily = MontserratFamily,
+                      fontWeight = FontWeight.Bold,
+                      fontSize = 16.sp,
+                      color = TextWhite,
+                      modifier = Modifier.testTag("salon_name_${salon.salonId}")
+                    )
+                    Text(
+                      text = salon.businessType,
+                      fontFamily = MontserratFamily,
+                      fontSize = 11.sp,
+                      color = PinkPrimary
+                    )
+                  }
+
+                  Spacer(modifier = Modifier.height(4.dp))
+
+                  // Horizontal Partner Status Text Row
+                  Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.testTag("salon_status_row_${salon.salonId}")
+                  ) {
+                    Box(
+                      modifier = Modifier
+                        .size(7.dp)
+                        .clip(CircleShape)
+                        .background(if (salon.isActive) Color(0xFF4CAF50) else Color(0xFFFF5252))
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                      text = if (salon.isActive) "ACTIVE • Accepting Bookings/Orders" else "DEACTIVATED • Currently Unavailable",
+                      fontFamily = MontserratFamily,
+                      fontWeight = FontWeight.SemiBold,
+                      fontSize = 11.5.sp,
+                      color = if (salon.isActive) Color(0xFF4CAF50) else Color(0xFFFF5252),
+                      modifier = Modifier.testTag("salon_active_status_text_${salon.salonId}")
+                    )
+                  }
+
+                  Spacer(modifier = Modifier.height(6.dp))
+
+                  // Address
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                      imageVector = Icons.Default.LocationOn,
+                      contentDescription = null,
+                      tint = GoldPrimary,
+                      modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                      text = if (!salon.address.isNullOrBlank()) salon.address else "Address available on details",
+                      fontFamily = MontserratFamily,
+                      fontSize = 12.sp,
+                      color = TextIvory,
+                      maxLines = 1,
+                      modifier = Modifier.testTag("salon_address_${salon.salonId}")
+                    )
+                  }
+
+                  Spacer(modifier = Modifier.height(4.dp))
+
+                  // Contact
+                  Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                      imageVector = Icons.Default.Person,
+                      contentDescription = null,
+                      tint = TextSecondary,
+                      modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                      text = "Phone: ${salon.mobileNumber}",
+                      fontFamily = MontserratFamily,
+                      fontSize = 11.5.sp,
+                      color = TextSecondary,
+                      modifier = Modifier.testTag("salon_phone_${salon.salonId}")
+                    )
+                  }
+
+                  // GPS indicator
+                  if (salon.latitude != null && salon.longitude != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                      text = "GPS: ${salon.latitude}, ${salon.longitude}",
+                      fontFamily = MontserratFamily,
+                      fontSize = 11.sp,
+                      color = GoldAccent,
+                      modifier = Modifier.testTag("salon_gps_${salon.salonId}")
+                    )
+                  }
+
+                  Spacer(modifier = Modifier.height(12.dp))
+
+                  // Action Buttons: View Salon & Directions
+                  Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                  ) {
+                    Button(
+                      onClick = { onSalonSelected(salon) },
+                      colors = ButtonDefaults.buttonColors(containerColor = GoldPrimary),
+                      shape = RoundedCornerShape(8.dp),
+                      modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp)
+                        .testTag("btn_view_salon_${salon.salonId}")
+                    ) {
+                      Text(
+                        text = "VIEW SALON",
+                        fontFamily = MontserratFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        color = Color(0xFF1E1302)
+                      )
+                    }
+
+                    OutlinedButton(
+                      onClick = { openGoogleMapsDirections(context, salon) },
+                      border = BorderStroke(1.dp, GoldBorder),
+                      shape = RoundedCornerShape(8.dp),
+                      colors = ButtonDefaults.outlinedButtonColors(contentColor = GoldPrimary),
+                      modifier = Modifier
+                        .height(38.dp)
+                        .testTag("btn_get_directions_${salon.salonId}")
+                    ) {
+                      Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        modifier = Modifier.size(13.dp),
+                        tint = GoldPrimary
+                      )
+                      Spacer(modifier = Modifier.width(4.dp))
+                      Text(
+                        text = "Directions",
+                        fontFamily = MontserratFamily,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold
+                      )
+                    }
+                  }
+                }
+              }
             }
           }
         }
