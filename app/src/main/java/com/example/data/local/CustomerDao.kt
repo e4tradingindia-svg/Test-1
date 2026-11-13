@@ -12,13 +12,13 @@ interface CustomerDao {
   @Insert(onConflict = OnConflictStrategy.ABORT)
   suspend fun insertCustomer(customer: CustomerEntity)
 
-  @Query("SELECT * FROM customers WHERE normalizedPhone = :phone LIMIT 1")
+  @Query("SELECT * FROM customers WHERE normalizedPhone = :phone OR mobileNumber = :phone LIMIT 1")
   suspend fun getCustomerByPhone(phone: String): CustomerEntity?
 
   @Query("SELECT * FROM customers WHERE customerId = :customerId LIMIT 1")
   suspend fun getCustomerById(customerId: String): CustomerEntity?
 
-  @Query("SELECT COUNT(*) FROM customers WHERE normalizedPhone = :phone")
+  @Query("SELECT COUNT(*) FROM customers WHERE normalizedPhone = :phone OR mobileNumber = :phone")
   suspend fun countByPhone(phone: String): Int
 
   @Query("UPDATE customers SET profilePhotoUri = :photoUri, address = :address WHERE customerId = :customerId")

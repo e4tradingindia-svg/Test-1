@@ -18,7 +18,7 @@ import com.example.ui.screens.owner.EditSalonBusinessProfileScreen
 import com.example.ui.screens.owner.SalonOwnerDashboardScreen
 import com.example.ui.screens.owner.SalonOwnerLoginScreen
 import com.example.ui.screens.owner.SalonOwnerRegisterScreen
-import com.example.ui.screens.welcome.RoleSelectionScreen
+import com.example.ui.welcome.WelcomeScreen
 
 object Routes {
     const val ROLE_SELECTION = "role_selection"
@@ -66,9 +66,9 @@ fun AppNavigation(
     ) {
         // Welcome / Role Selection
         composable(Routes.ROLE_SELECTION) {
-            RoleSelectionScreen(
-                onNavigateToCustomer = { navController.navigate(Routes.CUSTOMER_LOGIN) },
-                onNavigateToOwner = { navController.navigate(Routes.OWNER_LOGIN) }
+            WelcomeScreen(
+                onCustomerClick = { navController.navigate(Routes.CUSTOMER_LOGIN) },
+                onOwnerClick = { navController.navigate(Routes.OWNER_LOGIN) }
             )
         }
 

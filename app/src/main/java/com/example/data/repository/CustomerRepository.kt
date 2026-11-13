@@ -36,6 +36,7 @@ class CustomerRepository(private val customerDao: CustomerDao) {
             customerId = customerId,
             name = trimmedName,
             mobileNumber = trimmedMobile,
+            normalizedPhone = trimmedMobile,
             passwordHash = hashPassword(password)
         )
         customerDao.insertCustomer(customer)
@@ -65,4 +66,40 @@ class CustomerRepository(private val customerDao: CustomerDao) {
     suspend fun updateProfile(customerId: String, photoUri: String, address: String) {
         customerDao.updateProfile(customerId, photoUri, address)
     }
+
+    suspend fun authenticateCustomer(rawPhone: String, password: String): Result<CustomerEntity> {
+        return loginCustomer(rawPhone.trim(), password)
+    }
+
+    suspend fun registerCustomer(
+        fullName: String,
+        rawPhone: String,
+        password: String,
+        confirmPassword: String
+    ): Result<CustomerEntity> {
+        if (password != confirmPassword) {
+            return Result.failure(IllegalArgumentException("Passwords do not match"))
+        }
+        return registerCustomer(
+            name = fullName,
+            mobileNumber = rawPhone,
+            password = password
+        )
+    }
+
+    suspend fun updateCustomerProfile(
+        customerId: String,
+        photoUri: String?,
+        address: String?
+    ): Result<CustomerEntity> {
+        customerDao.updateProfile(
+            customerId = customerId,
+            photoUri = photoUri.orEmpty(),
+            address = address.orEmpty().trim()
+        )
+        val updated = customerDao.getCustomerById(customerId)
+            ?: return Result.failure(IllegalStateException("Customer account not found"))
+        return Result.success(updated)
+    }
 }
+

@@ -56,10 +56,173 @@ class CustomerAuthRobolectricTest {
         val customer = regResult.getOrThrow()
         assertEquals("Neha Sharma", customer.name)
         assertEquals("9876543210", customer.mobileNumber)
+        assertEquals("9876543210", customer.normalizedPhone)
+
+        // Duplicate mobile-number prevention
+        val duplicateResult = customerRepository.registerCustomer("Another User", "9876543210", "pass456")
+        assertTrue(duplicateResult.isFailure)
 
         val loginResult = customerRepository.loginCustomer("9876543210", "pass123")
         assertTrue(loginResult.isSuccess)
         assertEquals(customer.customerId, loginResult.getOrThrow().customerId)
+    }
+
+    @Test
+    fun testLocalCustomerDaoNormalizedPhoneQueries() = runBlocking {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val localDb = Room.inMemoryDatabaseBuilder(
+            context,
+            com.example.data.local.SalonMateDatabase::class.java
+        ).allowMainThreadQueries().build()
+        try {
+            val localDao = localDb.customerDao()
+            val customer = CustomerEntity(
+                customerId = "CUST-556677",
+                name = "Riya Kapoor",
+                mobileNumber = "9876556677",
+                normalizedPhone = "9876556677",
+                passwordHash = "hash"
+            )
+            localDao.insertCustomer(customer)
+
+            val byPhone = localDao.getCustomerByPhone("9876556677")
+            assertNotNull(byPhone)
+            assertEquals("CUST-556677", byPhone?.customerId)
+            assertEquals("9876556677", byPhone?.normalizedPhone)
+            assertEquals(1, localDao.countByPhone("9876556677"))
+            assertEquals(0, localDao.countByPhone("9999999999"))
+        } finally {
+            localDb.close()
+        }
+    }
+
+    @Test
+    fun testSafeMigrationPreservesExistingCustomers() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val dbName = "migration_test_${System.currentTimeMillis()}.db"
+        context.deleteDatabase(dbName)
+        try {
+            val legacyDb = context.openOrCreateDatabase(dbName, Context.MODE_PRIVATE, null)
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS customers (
+                    customerId TEXT NOT NULL PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    mobileNumber TEXT NOT NULL,
+                    passwordHash TEXT NOT NULL,
+                    profilePhotoUri TEXT NOT NULL,
+                    address TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS salons (
+                    salonId TEXT NOT NULL PRIMARY KEY,
+                    salonName TEXT NOT NULL,
+                    ownerName TEXT NOT NULL,
+                    mobileNumber TEXT NOT NULL,
+                    passwordHash TEXT NOT NULL,
+                    businessType TEXT NOT NULL,
+                    bannerUri TEXT NOT NULL,
+                    interiorPhotoUris TEXT NOT NULL,
+                    address TEXT NOT NULL,
+                    latitude REAL NOT NULL,
+                    longitude REAL NOT NULL,
+                    rating REAL NOT NULL,
+                    reviewCount INTEGER NOT NULL,
+                    isActive INTEGER NOT NULL,
+                    createdAt INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS salon_services (
+                    serviceId TEXT NOT NULL PRIMARY KEY,
+                    salonId TEXT NOT NULL,
+                    serviceName TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    price REAL NOT NULL,
+                    durationMinutes INTEGER NOT NULL,
+                    description TEXT NOT NULL,
+                    isAvailable INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS salon_staff (
+                    staffId TEXT NOT NULL PRIMARY KEY,
+                    salonId TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    role TEXT NOT NULL,
+                    isAvailable INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS salon_business_hours (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    salonId TEXT NOT NULL,
+                    dayOfWeek INTEGER NOT NULL,
+                    openTime TEXT NOT NULL,
+                    closeTime TEXT NOT NULL,
+                    isOpen INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS salon_bookings (
+                    bookingId TEXT NOT NULL PRIMARY KEY,
+                    salonId TEXT NOT NULL,
+                    customerId TEXT NOT NULL,
+                    customerName TEXT NOT NULL,
+                    customerPhone TEXT NOT NULL,
+                    serviceIds TEXT NOT NULL,
+                    serviceNames TEXT NOT NULL,
+                    bookingDate TEXT NOT NULL,
+                    timeSlot TEXT NOT NULL,
+                    totalAmount REAL NOT NULL,
+                    status TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS owner_notifications (
+                    notificationId TEXT NOT NULL PRIMARY KEY,
+                    salonId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    isRead INTEGER NOT NULL
+                )
+                """.trimIndent()
+            )
+            legacyDb.execSQL(
+                "INSERT INTO customers (customerId, name, mobileNumber, passwordHash, profilePhotoUri, address, createdAt) VALUES ('CUST-112233', 'Priya', '9811112233', 'hash123', '', 'Delhi', 1000)"
+            )
+            legacyDb.version = 1
+            legacyDb.close()
+
+            val migratedDb = Room.databaseBuilder(context, SalonMateDatabase::class.java, dbName)
+                .addMigrations(SalonMateDatabase.MIGRATION_1_2)
+                .allowMainThreadQueries()
+                .build()
+            val migratedCustomer = runBlocking { migratedDb.customerDao().getCustomerByMobile("9811112233") }
+            assertNotNull(migratedCustomer)
+            assertEquals("CUST-112233", migratedCustomer?.customerId)
+            assertEquals("Priya", migratedCustomer?.name)
+            assertEquals("9811112233", migratedCustomer?.normalizedPhone)
+            migratedDb.close()
+        } finally {
+            context.deleteDatabase(dbName)
+        }
     }
 
     @Test

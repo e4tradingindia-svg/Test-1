@@ -1,3 +1,118 @@
 <resources>
     <string name="app_name">SalonMate</string>
+    <string name="tagline">BOOK • BEAUTY • BE YOU</string>
+
+    <string name="badge_verified">Verified Salons</string>
+    <string name="badge_easy_booking">Easy Booking</string>
+    <string name="badge_trusted">Trusted Experts</string>
+
+    <string name="content_desc_logo">SalonMate Logo</string>
+    <string name="content_desc_customer_badge">Customer Portal</string>
+    <string name="content_desc_owner_badge">Salon Owner Portal</string>
+    <string name="content_desc_arrow">Continue</string>
+
+    <string name="customer_portal_tag">CUSTOMER PORTAL</string>
+    <string name="customer_portal_title">CUSTOMER</string>
+    <string name="customer_portal_desc">Discover top salons &amp; beauty parlours, explore services, and book appointments effortlessly.</string>
+    <string name="btn_continue_customer">Continue as Customer</string>
+
+    <string name="owner_portal_tag">BUSINESS PARTNER</string>
+    <string name="owner_portal_title">SALON / PARLOUR OWNER</string>
+    <string name="owner_portal_desc">Manage your salon profile, showcase your interior gallery, and receive instant client bookings.</string>
+    <string name="btn_continue_owner">Continue as Owner</string>
+
+    <string name="service_haircut">Haircut</string>
+    <string name="service_facial">Facial</string>
+    <string name="service_makeup">Makeup</string>
+    <string name="service_nail">Nail Care</string>
+    <string name="service_spa">Spa</string>
+    <string name="service_beard">Beard</string>
+    <string name="service_more">More</string>
+
+    <string name="footer_about">About</string>
+    <string name="footer_support">Support</string>
+    <string name="footer_privacy">Privacy</string>
+
+    <string name="customer_welcome_title">Welcome to SalonMate</string>
+    <string name="customer_welcome_subtitle">Sign in or create your customer account</string>
+    <string name="tab_sign_in">Sign In</string>
+    <string name="tab_create_account">Create Account</string>
+    <string name="label_full_name">Full Name</string>
+    <string name="hint_full_name">Enter your full name</string>
+    <string name="label_mobile_number">Mobile Number</string>
+    <string name="hint_mobile_number">Enter 10-digit mobile number</string>
+    <string name="label_password">Password</string>
+    <string name="hint_password">Enter your password</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="hint_confirm_password">Re-enter your password</string>
+    <string name="btn_sign_in">SIGN IN</string>
+    <string name="btn_create_account">CREATE ACCOUNT</string>
+    <string name="link_new_to_salonmate">New to SalonMate? Create Account</string>
+    <string name="link_already_have_account">Already have an account? Sign In</string>
+
+    <string name="dialog_terms_title">Terms of Service</string>
+    <string name="dialog_terms_content">By using SalonMate, you agree to provide accurate contact and booking details and respect salon appointment schedules.</string>
+    <string name="dialog_privacy_title">Privacy Policy</string>
+    <string name="dialog_privacy_content">Your account details, profile photo, and appointment history are stored securely to deliver your salon booking experience.</string>
+    <string name="btn_close">Close</string>
+    <string name="btn_logout">Sign Out</string>
+    <string name="btn_edit_profile">Edit Profile</string>
+
+    <string name="portal_title">Customer Portal</string>
+    <string name="portal_welcome_back">Welcome back,</string>
+    <string name="portal_customer_id">Customer ID</string>
+    <string name="portal_phone">Mobile Number</string>
+    <string name="portal_address_title">Saved Address</string>
+    <string name="portal_no_address">No address added yet</string>
+
+    <string name="title_edit_profile">Edit Profile</string>
+    <string name="btn_change_photo">Change Photo</string>
+    <string name="btn_remove_photo">Remove Photo</string>
+    <string name="label_address">Address (Optional)</string>
+    <string name="hint_address">Enter your street, area, or city</string>
+    <string name="btn_save_changes">SAVE CHANGES</string>
+
+    <string name="customer_salon_details_title">Salon Details</string>
+    <string name="customer_btn_get_directions">Get Directions</string>
+    <string name="customer_btn_call_salon">Call Salon</string>
+
+    <string name="owner_type_men">Men\'s Salon</string>
+    <string name="owner_type_women">Women\'s Beauty Parlour</string>
+    <string name="owner_type_unisex">Unisex Salon</string>
+    <string name="owner_welcome_title">Partner Portal</string>
+    <string name="owner_welcome_subtitle">Sign in or register your salon on SalonMate</string>
+    <string name="owner_tab_sign_in">Partner Sign In</string>
+    <string name="owner_tab_register">Register Salon</string>
+    <string name="owner_label_salon_name">Salon / Parlour Name</string>
+    <string name="owner_hint_salon_name">Enter your salon or parlour name</string>
+    <string name="owner_label_business_type">Salon Category</string>
+    <string name="owner_btn_sign_in">SIGN IN</string>
+    <string name="owner_btn_register">REGISTER SALON</string>
+    <string name="owner_link_new">New partner? Register your salon</string>
+    <string name="owner_link_existing">Already registered? Sign In</string>
+
+    <string name="owner_dashboard_title">Business Dashboard</string>
+    <string name="owner_edit_profile_title">Edit Business Profile</string>
+    <string name="owner_edit_profile_subtitle">Update your salon banner, address, contact number &amp; GPS</string>
+    <string name="owner_label_banner">Salon Banner / Poster</string>
+    <string name="owner_btn_upload_banner">Upload Banner</string>
+    <string name="owner_btn_replace_banner">Replace Banner</string>
+    <string name="owner_btn_remove_banner">Remove</string>
+    <string name="owner_label_salon_address">Salon Address</string>
+    <string name="owner_hint_salon_address">Enter full salon address</string>
+    <string name="owner_label_contact_phone">Contact Number</string>
+    <string name="owner_label_gps">GPS Location</string>
+    <string name="owner_gps_status_unset">GPS location not set yet</string>
+
+    <string name="owner_stat_bookings">Bookings</string>
+    <string name="owner_stat_revenue">Revenue</string>
+    <string name="owner_stat_rating">Rating</string>
+    <string name="owner_tools_title">MANAGEMENT TOOLS</string>
+    <string name="owner_tool_services">Services &amp; Pricing</string>
+    <string name="owner_tool_staff">Staff &amp; Stylists</string>
+    <string name="owner_tool_hours">Business Hours</string>
+    <string name="owner_tool_photos">Photo Gallery</string>
+    <string name="owner_tool_bookings">Bookings</string>
+    <string name="owner_tool_notifications">Notifications</string>
 </resources>
+

@@ -25,3 +25,27 @@ val TextPrimary = Color(0xFFFFFFFF)
 val TextSecondary = Color(0xFFB0AEC2)
 val TextMuted = Color(0xFF757287)
 val DividerColor = Color(0xFF2B2638)
+
+// Theme aliases and extended tokens
+val LuxuryBlack = BlackBackground
+val LuxuryBlackElevated = LuxuryCardBg
+val CustomerCardBg = Color(0xFF160B1E)
+val OwnerCardBg = Color(0xFF19120A)
+val DarkBorder = DividerColor
+val DividerGoldPink = Color(0x4DFF6BA7)
+
+val GoldAccent = GoldLight
+val GoldGradientStart = Color(0xFFFFD54F)
+val GoldGradientEnd = GoldSecondary
+val GoldTagBg = Color(0x26FFC533)
+
+val PinkBorder = Color(0x66FF2A85)
+val PinkDeep = PinkDark
+val PinkGlow = Color(0x4DFF2A85)
+val PinkGradientStart = PinkPrimary
+val PinkGradientEnd = PinkDark
+val PinkTagBg = Color(0x26FF2A85)
+
+val TextIvory = Color(0xFFF5EFE6)
+val TextWhite = TextPrimary
+

@@ -22,7 +22,7 @@ interface CustomerDao {
     @Query("SELECT * FROM customers WHERE customerId = :customerId LIMIT 1")
     fun observeCustomerById(customerId: String): Flow<CustomerEntity?>
 
-    @Query("SELECT * FROM customers WHERE mobileNumber = :mobile LIMIT 1")
+    @Query("SELECT * FROM customers WHERE mobileNumber = :mobile OR normalizedPhone = :mobile LIMIT 1")
     suspend fun getCustomerByMobile(mobile: String): CustomerEntity?
 
     @Query("UPDATE customers SET profilePhotoUri = :photoUri, address = :address WHERE customerId = :customerId")

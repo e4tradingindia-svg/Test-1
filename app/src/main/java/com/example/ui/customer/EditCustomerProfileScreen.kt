@@ -117,7 +117,7 @@ fun EditCustomerProfileScreen(
   val focusManager = LocalFocusManager.current
   val coroutineScope = rememberCoroutineScope()
 
-  var currentPhotoUriString by remember { mutableStateOf(customer.profilePhotoUri) }
+  var currentPhotoUriString by remember { mutableStateOf<String?>(customer.profilePhotoUri.ifBlank { null }) }
   var addressInput by remember { mutableStateOf(customer.address ?: "") }
   var isSaving by remember { mutableStateOf(false) }
   var feedbackMessage by remember { mutableStateOf<String?>(null) }

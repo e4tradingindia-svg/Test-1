@@ -99,6 +99,9 @@ interface SalonDao {
     @Query("SELECT * FROM salon_bookings WHERE salonId = :salonId AND bookingDate = :date AND status != 'CANCELLED'")
     suspend fun getBookingsForSalonAndDate(salonId: String, date: String): List<SalonBookingEntity>
 
+    @Query("SELECT * FROM salon_bookings WHERE salonId = :salonId AND bookingDate = :date AND status != 'CANCELLED'")
+    fun observeBookingsForSalonAndDate(salonId: String, date: String): Flow<List<SalonBookingEntity>>
+
     @Query("SELECT * FROM salon_bookings WHERE salonId = :salonId ORDER BY createdAt DESC")
     fun observeBookingsBySalonId(salonId: String): Flow<List<SalonBookingEntity>>
 

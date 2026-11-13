@@ -299,4 +299,75 @@ class SalonRepository(private val salonDao: SalonDao) {
 
     suspend fun markNotificationRead(notificationId: String) =
         salonDao.markNotificationRead(notificationId)
+
+    suspend fun getSalonByPhone(phone: String): SalonEntity? =
+        salonDao.getSalonByPhone(phone)
+
+    suspend fun getSalonByIdOrPhone(salonId: String, phone: String): SalonEntity? =
+        salonDao.getSalonById(salonId) ?: salonDao.getSalonByPhone(phone)
+
+    suspend fun updateSalonActiveStatus(salonId: String, isActive: Boolean) =
+        salonDao.updateActiveStatus(salonId, isActive)
+
+    fun observeServicesForSalon(salonId: String): Flow<List<SalonServiceEntity>> =
+        salonDao.observeServicesBySalonId(salonId)
+
+    fun observeStaffForSalon(salonId: String): Flow<List<SalonStaffEntity>> =
+        salonDao.observeStaffBySalonId(salonId)
+
+    fun observeBookingsForSalon(salonId: String): Flow<List<SalonBookingEntity>> =
+        salonDao.observeBookingsBySalonId(salonId)
+
+    fun observeBookingsForDate(salonId: String, date: String): Flow<List<SalonBookingEntity>> =
+        salonDao.observeBookingsForSalonAndDate(salonId, date)
+
+    fun observeNotificationsForSalon(salonId: String): Flow<List<OwnerNotificationEntity>> =
+        salonDao.observeNotificationsBySalonId(salonId)
+
+    suspend fun updateSalonBusinessProfile(
+        salonId: String,
+        bannerUri: String?,
+        address: String?,
+        mobileNumber: String,
+        latitude: Double?,
+        longitude: Double?
+    ): Result<SalonEntity> {
+        val existing = salonDao.getSalonById(salonId)
+            ?: return Result.failure(IllegalStateException("Salon not found"))
+        salonDao.updateBusinessProfile(
+            salonId = salonId,
+            bannerUri = bannerUri.orEmpty(),
+            interiorPhotoUris = existing.interiorPhotoUris,
+            address = address.orEmpty().trim(),
+            mobileNumber = mobileNumber.trim(),
+            lat = latitude ?: existing.latitude,
+            lng = longitude ?: existing.longitude
+        )
+        val updated = salonDao.getSalonById(salonId)
+            ?: return Result.failure(IllegalStateException("Failed to reload salon profile"))
+        return Result.success(updated)
+    }
+
+    suspend fun createBooking(
+        salonId: String,
+        customerId: String,
+        customerName: String,
+        customerPhone: String,
+        selectedServices: List<SalonServiceEntity>,
+        bookingDate: String,
+        timeSlot: String,
+        staffId: String? = null,
+        staffName: String? = null
+    ): Result<SalonBookingEntity> = createBooking(
+        salonId = salonId,
+        customerId = customerId,
+        customerName = customerName,
+        customerPhone = customerPhone,
+        serviceIds = selectedServices.map { it.serviceId },
+        serviceNames = selectedServices.map { it.serviceName },
+        bookingDate = bookingDate,
+        timeSlot = timeSlot,
+        totalAmount = selectedServices.sumOf { it.price }
+    )
 }
+

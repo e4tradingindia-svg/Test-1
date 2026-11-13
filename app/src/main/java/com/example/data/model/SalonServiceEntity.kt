@@ -13,4 +13,8 @@ data class SalonServiceEntity(
     val durationMinutes: Int,
     val description: String = "",
     val isAvailable: Boolean = true
-)
+) {
+    val name: String
+        get() = serviceName
+}
+
