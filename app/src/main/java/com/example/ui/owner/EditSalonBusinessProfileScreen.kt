@@ -61,6 +61,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -124,6 +125,10 @@ fun EditSalonBusinessProfileScreen(
   val context = LocalContext.current
   val focusManager = LocalFocusManager.current
   val coroutineScope = rememberCoroutineScope()
+
+  // Observe database record to always reflect actual registered salon name
+  val dbSalon by salonRepository.observeSalonById(profile.salonId).collectAsState(initial = null)
+  val displayedSalonName = dbSalon?.salonName?.takeIf { it.isNotBlank() } ?: profile.salonName
 
   var bannerUriString by remember { mutableStateOf(profile.bannerUri) }
   var addressInput by remember { mutableStateOf(profile.address ?: "") }
@@ -469,7 +474,7 @@ fun EditSalonBusinessProfileScreen(
             verticalAlignment = Alignment.CenterVertically
           ) {
             Text(
-              text = profile.salonName,
+              text = displayedSalonName,
               fontFamily = MontserratFamily,
               fontWeight = FontWeight.Bold,
               fontSize = 16.sp,
@@ -811,6 +816,7 @@ fun EditSalonBusinessProfileScreen(
                 isErrorMessage = false
                 feedbackMessage = "Salon details saved successfully!"
                 val updatedProfile = profile.copy(
+                  salonName = updatedSalon.salonName,
                   bannerUri = updatedSalon.bannerUri,
                   address = updatedSalon.address,
                   mobileNumber = updatedSalon.mobileNumber,

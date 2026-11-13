@@ -8,70 +8,62 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-val MontserratFamily = FontFamily(
-  Font(R.font.montserrat, FontWeight.Normal)
+val CinzelFamily = FontFamily(
+    Font(R.font.cinzel, FontWeight.Normal)
 )
 
-val CinzelFamily = FontFamily(
-  Font(R.font.cinzel, FontWeight.Normal)
+val MontserratFamily = FontFamily(
+    Font(R.font.montserrat, FontWeight.Normal)
 )
 
 val Typography = Typography(
-  displayLarge = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Bold,
-    fontSize = 34.sp,
-    letterSpacing = 0.5.sp
-  ),
-  displayMedium = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Bold,
-    fontSize = 28.sp,
-    letterSpacing = 0.5.sp
-  ),
-  headlineLarge = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Bold,
-    fontSize = 22.sp,
-    letterSpacing = 0.5.sp
-  ),
-  headlineMedium = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.SemiBold,
-    fontSize = 18.sp,
-    letterSpacing = 0.3.sp
-  ),
-  titleMedium = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Medium,
-    fontSize = 15.sp,
-    letterSpacing = 0.2.sp
-  ),
-  bodyLarge = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Normal,
-    fontSize = 14.sp,
-    lineHeight = 20.sp,
-    letterSpacing = 0.25.sp
-  ),
-  bodyMedium = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Normal,
-    fontSize = 12.sp,
-    lineHeight = 16.sp,
-    letterSpacing = 0.2.sp
-  ),
-  labelLarge = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.Bold,
-    fontSize = 14.sp,
-    letterSpacing = 0.5.sp
-  ),
-  labelSmall = TextStyle(
-    fontFamily = MontserratFamily,
-    fontWeight = FontWeight.SemiBold,
-    fontSize = 10.sp,
-    letterSpacing = 0.5.sp
-  )
+    displayLarge = TextStyle(
+        fontFamily = CinzelFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
+        color = TextPrimary
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = CinzelFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        color = TextPrimary
+    ),
+    titleLarge = TextStyle(
+        fontFamily = MontserratFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        color = TextPrimary
+    ),
+    titleMedium = TextStyle(
+        fontFamily = MontserratFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 15.sp,
+        lineHeight = 20.sp,
+        color = TextPrimary
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = MontserratFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 15.sp,
+        lineHeight = 22.sp,
+        color = TextPrimary
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = MontserratFamily,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        color = TextSecondary
+    ),
+    labelSmall = TextStyle(
+        fontFamily = MontserratFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
+        color = TextMuted
+    )
 )
-

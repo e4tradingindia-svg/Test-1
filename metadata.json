@@ -1,6 +1,6 @@
 {
   "name": "SalonMate",
-  "description": "SalonMate - Luxury Salon & Beauty Parlour booking and business management platform.",
+  "description": "Premium salon and parlour booking and management app",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

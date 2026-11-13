@@ -86,6 +86,7 @@ import com.example.ui.theme.TextIvory
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.TextWhite
+import com.example.data.repository.SalonRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -112,6 +113,7 @@ enum class OwnerAuthTab {
 fun SalonOwnerAuthScreen(
   modifier: Modifier = Modifier,
   initialTab: OwnerAuthTab = OwnerAuthTab.SIGN_IN,
+  salonRepository: SalonRepository? = null,
   onAuthSuccess: (OwnerBusinessProfile) -> Unit = {},
   onBackClick: () -> Unit = {}
 ) {
@@ -710,16 +712,46 @@ fun SalonOwnerAuthScreen(
 
             isLoading = true
             coroutineScope.launch {
-              delay(400) // Brief smooth interaction feel
+              delay(300) // Brief smooth interaction feel
               isLoading = false
-              val resolvedSalonName = if (salonName.isNotBlank()) salonName else "Elite Studio & Spa"
-              val resolvedOwnerName = if (ownerName.isNotBlank()) ownerName else "Salon Partner"
+
+              // Lookup registered salon in database by phone or ID
+              val existing = salonRepository?.getSalonByIdOrPhone("SALON-$rawDigits", rawDigits)
+                ?: salonRepository?.getSalonById("OWNER-$rawDigits")
+                ?: salonRepository?.getSalonByPhone(rawDigits)
+
+              val resolvedSalonName = if (currentTab == OwnerAuthTab.REGISTER && salonName.isNotBlank()) {
+                salonName.trim()
+              } else {
+                existing?.salonName ?: if (salonName.isNotBlank()) salonName.trim() else "Salon & Parlour"
+              }
+
+              val resolvedOwnerName = if (currentTab == OwnerAuthTab.REGISTER && ownerName.isNotBlank()) {
+                ownerName.trim()
+              } else {
+                existing?.ownerName ?: if (ownerName.isNotBlank()) ownerName.trim() else "Salon Owner"
+              }
+
+              val resolvedType = if (currentTab == OwnerAuthTab.REGISTER) {
+                selectedType
+              } else {
+                existing?.businessType ?: selectedType
+              }
+
+              val resolvedSalonId = existing?.salonId ?: "SALON-$rawDigits"
+
               val profile = OwnerBusinessProfile(
-                ownerId = "OWNER-${rawDigits.takeLast(4)}",
+                ownerId = "OWNER-$rawDigits",
+                salonId = resolvedSalonId,
                 ownerName = resolvedOwnerName,
                 salonName = resolvedSalonName,
                 mobileNumber = rawDigits,
-                businessType = selectedType
+                businessType = resolvedType,
+                bannerUri = existing?.bannerUri,
+                address = existing?.address,
+                latitude = existing?.latitude,
+                longitude = existing?.longitude,
+                isActive = existing?.isActive ?: true
               )
               onAuthSuccess(profile)
             }

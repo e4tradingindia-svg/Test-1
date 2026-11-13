@@ -17,12 +17,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +36,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Group
@@ -46,6 +50,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -71,6 +76,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.example.R
 import com.example.data.repository.SalonRepository
 import com.example.ui.components.SalonMateLogoBadge
@@ -83,7 +89,10 @@ import com.example.ui.theme.LuxuryBlackElevated
 import com.example.ui.theme.LuxurySurface
 import com.example.ui.theme.MontserratFamily
 import com.example.ui.theme.OwnerCardBg
+import com.example.ui.theme.PinkBorder
+import com.example.ui.theme.PinkPrimary
 import com.example.ui.theme.TextIvory
+import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.TextWhite
 import kotlinx.coroutines.launch
@@ -108,10 +117,21 @@ fun SalonOwnerDashboardScreen(
   val coroutineScope = rememberCoroutineScope()
   var localIsActive by remember(profile.salonId) { mutableStateOf(profile.isActive) }
 
-  // Observe persisted database state if repository is available
+  // Observe persisted database state
   val dbSalon by salonRepository?.observeSalonById(profile.salonId)?.collectAsState(initial = null)
     ?: remember { mutableStateOf(null) }
   val currentIsActive = dbSalon?.isActive ?: localIsActive
+
+  val bookings by salonRepository?.observeBookingsForSalon(profile.salonId)?.collectAsState(initial = emptyList())
+    ?: remember { mutableStateOf(emptyList()) }
+  val notifications by salonRepository?.observeNotificationsForSalon(profile.salonId)?.collectAsState(initial = emptyList())
+    ?: remember { mutableStateOf(emptyList()) }
+  val services by salonRepository?.observeServicesForSalon(profile.salonId)?.collectAsState(initial = emptyList())
+    ?: remember { mutableStateOf(emptyList()) }
+  val staffList by salonRepository?.observeStaffForSalon(profile.salonId)?.collectAsState(initial = emptyList())
+    ?: remember { mutableStateOf(emptyList()) }
+
+  var activeDialogTool by remember { mutableStateOf<Int?>(null) }
 
   BackHandler {
     (context as? Activity)?.finish()
@@ -122,8 +142,8 @@ fun SalonOwnerDashboardScreen(
     OwnerManagementTool(R.string.owner_tool_staff, "Barbers, Stylists & Rosters", Icons.Default.Group),
     OwnerManagementTool(R.string.owner_tool_hours, "Mon - Sun opening schedules", Icons.Default.AccessTime),
     OwnerManagementTool(R.string.owner_tool_photos, "Interior, Work & Showcase", Icons.Default.PhotoCamera),
-    OwnerManagementTool(R.string.owner_tool_bookings, "Upcoming client appointments", Icons.Default.CalendarMonth),
-    OwnerManagementTool(R.string.owner_tool_notifications, "Client reminders & alerts", Icons.Default.Notifications)
+    OwnerManagementTool(R.string.owner_tool_bookings, "Upcoming client appointments (${bookings.size})", Icons.Default.CalendarMonth),
+    OwnerManagementTool(R.string.owner_tool_notifications, "Client reminders & alerts (${notifications.size})", Icons.Default.Notifications)
   )
 
   Box(
@@ -299,7 +319,7 @@ fun SalonOwnerDashboardScreen(
               Spacer(modifier = Modifier.width(12.dp))
               Column(modifier = Modifier.weight(1f)) {
                 Text(
-                  text = profile.salonName,
+                  text = dbSalon?.salonName ?: profile.salonName,
                   fontFamily = MontserratFamily,
                   fontWeight = FontWeight.Bold,
                   fontSize = 18.sp,
@@ -307,10 +327,11 @@ fun SalonOwnerDashboardScreen(
                   modifier = Modifier.testTag("owner_profile_salon_name")
                 )
                 Text(
-                  text = "${profile.ownerName} • ${profile.businessType}",
+                  text = "${dbSalon?.ownerName ?: profile.ownerName} • ${dbSalon?.businessType ?: profile.businessType}",
                   fontFamily = MontserratFamily,
                   fontSize = 12.sp,
-                  color = TextSecondary
+                  color = TextSecondary,
+                  modifier = Modifier.testTag("owner_name_and_type")
                 )
               }
             }
@@ -542,7 +563,7 @@ fun SalonOwnerDashboardScreen(
 
           Spacer(modifier = Modifier.height(14.dp))
 
-          // Detail stats row
+          // Detail stats row (Powered by actual Room Bookings!)
           Row(
             modifier = Modifier
               .fillMaxWidth()
@@ -559,11 +580,12 @@ fun SalonOwnerDashboardScreen(
                 color = TextSecondary
               )
               Text(
-                text = "14",
+                text = "${bookings.size}",
                 fontFamily = MontserratFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = GoldPrimary
+                color = GoldPrimary,
+                modifier = Modifier.testTag("owner_stat_bookings_text")
               )
             }
 
@@ -582,11 +604,12 @@ fun SalonOwnerDashboardScreen(
                 color = TextSecondary
               )
               Text(
-                text = "$480",
+                text = "$${bookings.sumOf { it.totalAmount }.toInt()}",
                 fontFamily = MontserratFamily,
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
-                color = TextWhite
+                color = TextWhite,
+                modifier = Modifier.testTag("owner_stat_revenue_text")
               )
             }
 
@@ -651,7 +674,7 @@ fun SalonOwnerDashboardScreen(
 
       Spacer(modifier = Modifier.height(12.dp))
 
-      // Management Tools List
+      // Management Tools List (Interactive Database Tools)
       Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -660,7 +683,9 @@ fun SalonOwnerDashboardScreen(
           Card(
             modifier = Modifier
               .fillMaxWidth()
-              .height(68.dp),
+              .height(68.dp)
+              .clickable { activeDialogTool = tool.titleRes }
+              .testTag("owner_tool_card_${tool.titleRes}"),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = LuxurySurface),
             border = BorderStroke(1.dp, GoldBorder.copy(alpha = 0.4f))
@@ -710,7 +735,7 @@ fun SalonOwnerDashboardScreen(
                   .padding(horizontal = 8.dp, vertical = 3.dp)
               ) {
                 Text(
-                  text = "READY",
+                  text = "VIEW",
                   fontFamily = MontserratFamily,
                   fontSize = 9.sp,
                   fontWeight = FontWeight.Bold,
@@ -753,6 +778,157 @@ fun SalonOwnerDashboardScreen(
       }
 
       Spacer(modifier = Modifier.height(20.dp))
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MODAL DIALOGS FOR OWNER MANAGEMENT TOOLS
+  // ─────────────────────────────────────────────────────────────
+  val dialogTool = activeDialogTool
+  if (dialogTool != null) {
+    Dialog(onDismissRequest = { activeDialogTool = null }) {
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .heightIn(max = 520.dp)
+          .testTag("owner_management_dialog"),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = LuxuryBlack),
+        border = BorderStroke(1.5.dp, GoldBorder)
+      ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+          // Dialog Header
+          Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text(
+              text = stringResource(dialogTool),
+              fontFamily = MontserratFamily,
+              fontWeight = FontWeight.Bold,
+              fontSize = 16.sp,
+              color = GoldPrimary
+            )
+            IconButton(
+              onClick = { activeDialogTool = null },
+              modifier = Modifier.size(32.dp)
+            ) {
+              Icon(Icons.Default.Close, "Close", tint = TextSecondary, modifier = Modifier.size(18.dp))
+            }
+          }
+
+          HorizontalDivider(color = GoldBorder.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 10.dp))
+
+          when (dialogTool) {
+            // Bookings / Appointments Tool
+            R.string.owner_tool_bookings -> {
+              if (bookings.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 30.dp), contentAlignment = Alignment.Center) {
+                  Text("No customer appointments booked yet.", fontFamily = MontserratFamily, color = TextMuted, fontSize = 12.sp)
+                }
+              } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                  items(bookings) { b ->
+                    Card(
+                      modifier = Modifier.fillMaxWidth(),
+                      colors = CardDefaults.cardColors(containerColor = LuxuryBlackElevated),
+                      border = BorderStroke(1.dp, GoldBorder.copy(alpha = 0.3f))
+                    ) {
+                      Column(modifier = Modifier.padding(12.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                          Text(b.customerName, fontWeight = FontWeight.Bold, color = TextWhite, fontSize = 13.sp)
+                          Text("$${String.format("%.2f", b.totalAmount)}", fontWeight = FontWeight.Bold, color = GoldPrimary, fontSize = 13.sp)
+                        }
+                        Text("Phone: ${b.customerPhone}", fontSize = 11.sp, color = TextSecondary)
+                        Text("Date: ${b.bookingDate} at ${b.timeSlot}", fontSize = 11.sp, color = GoldAccent)
+                        Text("Services: ${b.serviceNames}", fontSize = 11.sp, color = TextIvory)
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            // Notifications Tool
+            R.string.owner_tool_notifications -> {
+              if (notifications.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth().padding(vertical = 30.dp), contentAlignment = Alignment.Center) {
+                  Text("No new notifications.", fontFamily = MontserratFamily, color = TextMuted, fontSize = 12.sp)
+                }
+              } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                  items(notifications) { n ->
+                    Card(
+                      modifier = Modifier.fillMaxWidth(),
+                      colors = CardDefaults.cardColors(containerColor = LuxuryBlackElevated),
+                      border = BorderStroke(1.dp, PinkBorder.copy(alpha = 0.5f))
+                    ) {
+                      Column(modifier = Modifier.padding(12.dp)) {
+                        Text(n.title, fontWeight = FontWeight.Bold, color = GoldPrimary, fontSize = 13.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(n.message, fontSize = 11.5.sp, color = TextWhite)
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+            // Services & Pricing Tool
+            R.string.owner_tool_services -> {
+              LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(services) { s ->
+                  Row(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(LuxuryBlackElevated).padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                      Text(s.name, fontWeight = FontWeight.SemiBold, color = TextWhite, fontSize = 12.5.sp)
+                      Text("${s.durationMinutes} mins • ${s.category}", fontSize = 10.5.sp, color = TextSecondary)
+                    }
+                    Text("$${String.format("%.2f", s.price)}", fontWeight = FontWeight.Bold, color = GoldPrimary, fontSize = 13.sp)
+                  }
+                }
+              }
+            }
+
+            // Staff & Barbers Tool
+            R.string.owner_tool_staff -> {
+              LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(staffList) { staff ->
+                  Row(
+                    modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).background(LuxuryBlackElevated).padding(10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                  ) {
+                    Column {
+                      Text(staff.name, fontWeight = FontWeight.SemiBold, color = TextWhite, fontSize = 12.5.sp)
+                      Text(staff.role, fontSize = 11.sp, color = TextSecondary)
+                    }
+                    Text(if (staff.isAvailable) "AVAILABLE" else "OFF DUTY", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = GoldPrimary)
+                  }
+                }
+              }
+            }
+
+            // Business Hours Tool
+            R.string.owner_tool_hours -> {
+              Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Operating Schedule", fontWeight = FontWeight.Bold, color = TextWhite, fontSize = 13.sp)
+                Text("Monday - Sunday: 09:00 AM - 08:00 PM", color = TextIvory, fontSize = 12.sp)
+                Text("Slot Duration: 30 minutes", color = TextSecondary, fontSize = 11.5.sp)
+                Text("Online booking acceptance: Controlled by Active Partner toggle", color = GoldAccent, fontSize = 11.sp)
+              }
+            }
+
+            else -> {
+              Text("Showcase and portfolio gallery management.", color = TextSecondary, fontSize = 12.sp)
+            }
+          }
+        }
+      }
     }
   }
 }
