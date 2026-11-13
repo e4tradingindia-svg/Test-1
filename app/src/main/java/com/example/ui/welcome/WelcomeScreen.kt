@@ -8,8 +8,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,12 +36,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -49,6 +49,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
@@ -77,6 +80,225 @@ import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.TextWhite
 
+@Immutable
+private data class WelcomeLayoutMetrics(
+  val heroHeight: Dp,
+  val logoSize: Dp,
+  val titleFontSize: TextUnit,
+  val taglineFontSize: TextUnit,
+  val taglineLetterSpacing: TextUnit,
+  val subtitleFontSize: TextUnit,
+  val afterHeroSpace: Dp,
+  val afterBrandSpace: Dp,
+  val afterBadgesSpace: Dp,
+  val betweenCardsSpace: Dp,
+  val beforeFooterSpace: Dp,
+  val bottomSpace: Dp,
+  val badgeHorizontalPadding: Dp,
+  val badgeVerticalPadding: Dp,
+  val badgeIconBoxSize: Dp,
+  val badgeIconSize: Dp,
+  val badgeFontSize: TextUnit,
+  val badgeLineHeight: TextUnit,
+  val cardCornerRadius: Dp,
+  val cardPadStart: Dp,
+  val cardPadTop: Dp,
+  val cardPadEnd: Dp,
+  val cardPadBottom: Dp,
+  val cardBadgeSize: Dp,
+  val cardBadgeIconSize: Dp,
+  val cardTagFontSize: TextUnit,
+  val cardTagPadH: Dp,
+  val cardTagPadV: Dp,
+  val customerTitleSize: TextUnit,
+  val ownerTitleSize: TextUnit,
+  val cardDescFontSize: TextUnit,
+  val cardDescLineHeight: TextUnit,
+  val cardTitleTopSpace: Dp,
+  val cardButtonTopSpace: Dp,
+  val cardButtonPadH: Dp,
+  val cardButtonPadV: Dp,
+  val customerButtonFontSize: TextUnit,
+  val ownerButtonFontSize: TextUnit,
+  val cardPhotoHeight: Dp,
+  val stripPadV: Dp,
+  val stripIconSize: Dp,
+  val stripTextSize: TextUnit,
+  val stripLineHeight: TextUnit,
+  val stripItemWidth: Dp,
+  val stripDividerHeight: Dp,
+  val footerPadV: Dp,
+  val footerFontSize: TextUnit,
+  val footerIconSize: Dp
+)
+
+private fun rememberWelcomeLayoutMetrics(availableHeight: Dp): WelcomeLayoutMetrics {
+  return when {
+    availableHeight < 650.dp -> {
+      val heroHeight = (availableHeight * 0.175f).coerceIn(96.dp, 118.dp)
+      val logoSize = (heroHeight * 0.72f).coerceIn(70.dp, 88.dp)
+      WelcomeLayoutMetrics(
+        heroHeight = heroHeight,
+        logoSize = logoSize,
+        titleFontSize = 24.sp,
+        taglineFontSize = 9.5.sp,
+        taglineLetterSpacing = 1.5.sp,
+        subtitleFontSize = 11.sp,
+        afterHeroSpace = 4.dp,
+        afterBrandSpace = 6.dp,
+        afterBadgesSpace = 6.dp,
+        betweenCardsSpace = 7.dp,
+        beforeFooterSpace = 6.dp,
+        bottomSpace = 4.dp,
+        badgeHorizontalPadding = 5.dp,
+        badgeVerticalPadding = 4.dp,
+        badgeIconBoxSize = 18.dp,
+        badgeIconSize = 11.dp,
+        badgeFontSize = 9.sp,
+        badgeLineHeight = 11.sp,
+        cardCornerRadius = 16.dp,
+        cardPadStart = 12.dp,
+        cardPadTop = 8.dp,
+        cardPadEnd = 6.dp,
+        cardPadBottom = 8.dp,
+        cardBadgeSize = 26.dp,
+        cardBadgeIconSize = 14.dp,
+        cardTagFontSize = 8.5.sp,
+        cardTagPadH = 7.dp,
+        cardTagPadV = 2.dp,
+        customerTitleSize = 17.sp,
+        ownerTitleSize = 15.sp,
+        cardDescFontSize = 10.sp,
+        cardDescLineHeight = 12.5.sp,
+        cardTitleTopSpace = 4.dp,
+        cardButtonTopSpace = 6.dp,
+        cardButtonPadH = 12.dp,
+        cardButtonPadV = 6.dp,
+        customerButtonFontSize = 11.sp,
+        ownerButtonFontSize = 10.5.sp,
+        cardPhotoHeight = (availableHeight * 0.15f).coerceIn(88.dp, 102.dp),
+        stripPadV = 4.dp,
+        stripIconSize = 15.dp,
+        stripTextSize = 7.5.sp,
+        stripLineHeight = 9.5.sp,
+        stripItemWidth = 50.dp,
+        stripDividerHeight = 18.dp,
+        footerPadV = 3.dp,
+        footerFontSize = 10.sp,
+        footerIconSize = 11.dp
+      )
+    }
+    availableHeight <= 780.dp -> {
+      val heroHeight = (availableHeight * 0.19f).coerceIn(120.dp, 148.dp)
+      val logoSize = (heroHeight * 0.72f).coerceIn(88.dp, 106.dp)
+      WelcomeLayoutMetrics(
+        heroHeight = heroHeight,
+        logoSize = logoSize,
+        titleFontSize = 27.sp,
+        taglineFontSize = 10.5.sp,
+        taglineLetterSpacing = 1.8.sp,
+        subtitleFontSize = 12.sp,
+        afterHeroSpace = 5.dp,
+        afterBrandSpace = 9.dp,
+        afterBadgesSpace = 9.dp,
+        betweenCardsSpace = 10.dp,
+        beforeFooterSpace = 10.dp,
+        bottomSpace = 6.dp,
+        badgeHorizontalPadding = 6.dp,
+        badgeVerticalPadding = 5.dp,
+        badgeIconBoxSize = 20.dp,
+        badgeIconSize = 12.dp,
+        badgeFontSize = 9.5.sp,
+        badgeLineHeight = 11.5.sp,
+        cardCornerRadius = 18.dp,
+        cardPadStart = 14.dp,
+        cardPadTop = 10.dp,
+        cardPadEnd = 6.dp,
+        cardPadBottom = 9.dp,
+        cardBadgeSize = 28.dp,
+        cardBadgeIconSize = 15.dp,
+        cardTagFontSize = 9.sp,
+        cardTagPadH = 8.dp,
+        cardTagPadV = 3.dp,
+        customerTitleSize = 19.sp,
+        ownerTitleSize = 16.5.sp,
+        cardDescFontSize = 10.5.sp,
+        cardDescLineHeight = 13.5.sp,
+        cardTitleTopSpace = 5.dp,
+        cardButtonTopSpace = 7.dp,
+        cardButtonPadH = 14.dp,
+        cardButtonPadV = 7.dp,
+        customerButtonFontSize = 11.5.sp,
+        ownerButtonFontSize = 11.sp,
+        cardPhotoHeight = (availableHeight * 0.16f).coerceIn(106.dp, 124.dp),
+        stripPadV = 5.dp,
+        stripIconSize = 17.dp,
+        stripTextSize = 8.sp,
+        stripLineHeight = 10.sp,
+        stripItemWidth = 54.dp,
+        stripDividerHeight = 20.dp,
+        footerPadV = 4.dp,
+        footerFontSize = 10.5.sp,
+        footerIconSize = 12.dp
+      )
+    }
+    else -> {
+      val heroHeight = (availableHeight * 0.205f).coerceIn(152.dp, 190.dp)
+      val logoSize = (heroHeight * 0.70f).coerceIn(106.dp, 126.dp)
+      WelcomeLayoutMetrics(
+        heroHeight = heroHeight,
+        logoSize = logoSize,
+        titleFontSize = 30.sp,
+        taglineFontSize = 11.sp,
+        taglineLetterSpacing = 2.sp,
+        subtitleFontSize = 13.sp,
+        afterHeroSpace = 6.dp,
+        afterBrandSpace = 11.dp,
+        afterBadgesSpace = 11.dp,
+        betweenCardsSpace = 12.dp,
+        beforeFooterSpace = 12.dp,
+        bottomSpace = 8.dp,
+        badgeHorizontalPadding = 6.dp,
+        badgeVerticalPadding = 6.dp,
+        badgeIconBoxSize = 22.dp,
+        badgeIconSize = 13.dp,
+        badgeFontSize = 10.sp,
+        badgeLineHeight = 12.sp,
+        cardCornerRadius = 18.dp,
+        cardPadStart = 14.dp,
+        cardPadTop = 11.dp,
+        cardPadEnd = 8.dp,
+        cardPadBottom = 10.dp,
+        cardBadgeSize = 30.dp,
+        cardBadgeIconSize = 16.dp,
+        cardTagFontSize = 9.sp,
+        cardTagPadH = 9.dp,
+        cardTagPadV = 3.dp,
+        customerTitleSize = 20.sp,
+        ownerTitleSize = 17.5.sp,
+        cardDescFontSize = 11.sp,
+        cardDescLineHeight = 14.sp,
+        cardTitleTopSpace = 6.dp,
+        cardButtonTopSpace = 8.dp,
+        cardButtonPadH = 14.dp,
+        cardButtonPadV = 8.dp,
+        customerButtonFontSize = 12.sp,
+        ownerButtonFontSize = 11.5.sp,
+        cardPhotoHeight = (availableHeight * 0.16f).coerceIn(120.dp, 140.dp),
+        stripPadV = 6.dp,
+        stripIconSize = 18.dp,
+        stripTextSize = 8.5.sp,
+        stripLineHeight = 10.5.sp,
+        stripItemWidth = 56.dp,
+        stripDividerHeight = 22.dp,
+        footerPadV = 5.dp,
+        footerFontSize = 11.sp,
+        footerIconSize = 13.dp
+      )
+    }
+  }
+}
+
 @Composable
 fun WelcomeScreen(
   modifier: Modifier = Modifier,
@@ -88,7 +310,7 @@ fun WelcomeScreen(
 ) {
   val scrollState = rememberScrollState()
 
-  Box(
+  BoxWithConstraints(
     modifier = modifier
       .fillMaxSize()
       .background(LuxuryBlack)
@@ -97,6 +319,8 @@ fun WelcomeScreen(
       .testTag("welcome_screen_root"),
     contentAlignment = Alignment.TopCenter
   ) {
+    val metrics = rememberWelcomeLayoutMetrics(maxHeight)
+
     Column(
       modifier = Modifier
         .fillMaxSize()
@@ -105,55 +329,59 @@ fun WelcomeScreen(
       horizontalAlignment = Alignment.CenterHorizontally
     ) {
       // 1. Hero Area: Visual characters + Floating Logo Badge
-      HeroSection()
+      HeroSection(metrics = metrics)
 
-      Spacer(modifier = Modifier.height(8.dp))
+      Spacer(modifier = Modifier.height(metrics.afterHeroSpace))
 
       // 2. SalonMate Branding Header & Subtitle
-      BrandHeaderSection()
+      BrandHeaderSection(metrics = metrics)
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(metrics.afterBrandSpace))
 
       // 3. Three Compact Feature Badges Row
       FeatureBadgesRow(
+        metrics = metrics,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp)
       )
 
-      Spacer(modifier = Modifier.height(18.dp))
+      Spacer(modifier = Modifier.height(metrics.afterBadgesSpace))
 
       // 4. Customer Portal Card
       CustomerPortalCard(
+        metrics = metrics,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp),
         onContinueClick = onCustomerClick
       )
 
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(metrics.betweenCardsSpace))
 
       // 5. Salon / Parlour Owner Card
       OwnerPortalCard(
+        metrics = metrics,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp),
         onContinueClick = onOwnerClick
       )
 
-      Spacer(modifier = Modifier.height(24.dp))
+      Spacer(modifier = Modifier.height(metrics.beforeFooterSpace))
 
       // 6. Footer Links
       FooterLinksSection(
+        metrics = metrics,
         modifier = Modifier
           .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 8.dp),
+          .padding(horizontal = 16.dp, vertical = metrics.footerPadV),
         onAboutClick = onAboutClick,
         onSupportClick = onSupportClick,
         onPrivacyClick = onPrivacyClick
       )
 
-      Spacer(modifier = Modifier.height(20.dp))
+      Spacer(modifier = Modifier.height(metrics.bottomSpace))
     }
   }
 }
@@ -164,24 +392,26 @@ fun WelcomeScreen(
  * with original SalonMate emblem logo floating centrally.
  */
 @Composable
-private fun HeroSection() {
+private fun HeroSection(metrics: WelcomeLayoutMetrics) {
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .height(240.dp),
+      .height(metrics.heroHeight),
     contentAlignment = Alignment.Center
   ) {
     // Realistic photographic salon banner (male barber left, female cucumber facial right)
     HeroSalonPhotoBanner(
       modifier = Modifier.fillMaxSize(),
-      height = 240.dp
+      height = metrics.heroHeight
     )
 
     // Original SalonMate Emblem Logo Badge centered between characters
     SalonMateLogoBadge(
       modifier = Modifier
         .align(Alignment.Center)
-        .testTag("salonmate_logo_badge")
+        .testTag("salonmate_logo_badge"),
+      badgeWidth = metrics.logoSize,
+      badgeHeight = metrics.logoSize
     )
   }
 }
@@ -193,7 +423,7 @@ private fun HeroSection() {
  * "Men Salon | Women Beauty Parlour"
  */
 @Composable
-private fun BrandHeaderSection() {
+private fun BrandHeaderSection(metrics: WelcomeLayoutMetrics) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = Modifier.padding(horizontal = 16.dp)
@@ -204,7 +434,7 @@ private fun BrandHeaderSection() {
     ) {
       Text(
         text = "SALON",
-        fontSize = 36.sp,
+        fontSize = metrics.titleFontSize,
         fontWeight = FontWeight.ExtraBold,
         fontFamily = MontserratFamily,
         color = GoldPrimary,
@@ -212,7 +442,7 @@ private fun BrandHeaderSection() {
       )
       Text(
         text = "MATE",
-        fontSize = 36.sp,
+        fontSize = metrics.titleFontSize,
         fontWeight = FontWeight.ExtraBold,
         fontFamily = MontserratFamily,
         color = PinkPrimary,
@@ -220,7 +450,7 @@ private fun BrandHeaderSection() {
       )
     }
 
-    Spacer(modifier = Modifier.height(4.dp))
+    Spacer(modifier = Modifier.height(2.dp))
 
     // "BOOK • BEAUTY • BE YOU"
     Row(
@@ -229,43 +459,43 @@ private fun BrandHeaderSection() {
     ) {
       Text(
         text = "BOOK",
-        fontSize = 11.5.sp,
+        fontSize = metrics.taglineFontSize,
         fontWeight = FontWeight.Bold,
-        letterSpacing = 2.sp,
+        letterSpacing = metrics.taglineLetterSpacing,
         color = TextWhite,
         fontFamily = MontserratFamily
       )
       Text(
         text = "  •  ",
-        fontSize = 12.sp,
+        fontSize = metrics.taglineFontSize,
         fontWeight = FontWeight.Black,
         color = GoldPrimary
       )
       Text(
         text = "BEAUTY",
-        fontSize = 11.5.sp,
+        fontSize = metrics.taglineFontSize,
         fontWeight = FontWeight.Bold,
-        letterSpacing = 2.sp,
+        letterSpacing = metrics.taglineLetterSpacing,
         color = TextWhite,
         fontFamily = MontserratFamily
       )
       Text(
         text = "  •  ",
-        fontSize = 12.sp,
+        fontSize = metrics.taglineFontSize,
         fontWeight = FontWeight.Black,
         color = GoldPrimary
       )
       Text(
         text = "BE YOU",
-        fontSize = 11.5.sp,
+        fontSize = metrics.taglineFontSize,
         fontWeight = FontWeight.Bold,
-        letterSpacing = 2.sp,
+        letterSpacing = metrics.taglineLetterSpacing,
         color = TextWhite,
         fontFamily = MontserratFamily
       )
     }
 
-    Spacer(modifier = Modifier.height(6.dp))
+    Spacer(modifier = Modifier.height(3.dp))
 
     // "Men Salon | Women Beauty Parlour"
     Row(
@@ -274,20 +504,20 @@ private fun BrandHeaderSection() {
     ) {
       Text(
         text = "Men Salon",
-        fontSize = 13.5.sp,
+        fontSize = metrics.subtitleFontSize,
         fontWeight = FontWeight.Medium,
         color = TextIvory,
         fontFamily = MontserratFamily
       )
       Text(
         text = "   |   ",
-        fontSize = 14.sp,
+        fontSize = metrics.subtitleFontSize,
         fontWeight = FontWeight.Light,
         color = GoldPrimary.copy(alpha = 0.7f)
       )
       Text(
         text = "Women Beauty Parlour",
-        fontSize = 13.5.sp,
+        fontSize = metrics.subtitleFontSize,
         fontWeight = FontWeight.Medium,
         color = TextIvory,
         fontFamily = MontserratFamily
@@ -302,26 +532,30 @@ private fun BrandHeaderSection() {
  */
 @Composable
 private fun FeatureBadgesRow(
+  metrics: WelcomeLayoutMetrics,
   modifier: Modifier = Modifier
 ) {
   Row(
     modifier = modifier,
-    horizontalArrangement = Arrangement.spacedBy(8.dp),
+    horizontalArrangement = Arrangement.spacedBy(6.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {
     FeatureBadgeItem(
       iconRes = SalonMateAssets.shieldCheckIcon,
       label = stringResource(R.string.badge_verified),
+      metrics = metrics,
       modifier = Modifier.weight(1f)
     )
     FeatureBadgeItem(
       iconRes = SalonMateAssets.calendarBookingIcon,
       label = stringResource(R.string.badge_easy_booking),
+      metrics = metrics,
       modifier = Modifier.weight(1f)
     )
     FeatureBadgeItem(
       iconRes = SalonMateAssets.trustedStarIcon,
       label = stringResource(R.string.badge_trusted),
+      metrics = metrics,
       modifier = Modifier.weight(1f)
     )
   }
@@ -331,9 +565,10 @@ private fun FeatureBadgesRow(
 private fun FeatureBadgeItem(
   iconRes: Int,
   label: String,
+  metrics: WelcomeLayoutMetrics,
   modifier: Modifier = Modifier
 ) {
-  val shape = RoundedCornerShape(22.dp)
+  val shape = RoundedCornerShape(18.dp)
 
   Box(
     modifier = modifier
@@ -357,7 +592,7 @@ private fun FeatureBadgeItem(
         ),
         shape = shape
       )
-      .padding(horizontal = 6.dp, vertical = 7.dp),
+      .padding(horizontal = metrics.badgeHorizontalPadding, vertical = metrics.badgeVerticalPadding),
     contentAlignment = Alignment.Center
   ) {
     Row(
@@ -366,7 +601,7 @@ private fun FeatureBadgeItem(
     ) {
       Box(
         modifier = Modifier
-          .size(24.dp)
+          .size(metrics.badgeIconBoxSize)
           .clip(CircleShape)
           .background(PinkDeep.copy(alpha = 0.7f)),
         contentAlignment = Alignment.Center
@@ -375,19 +610,21 @@ private fun FeatureBadgeItem(
           painter = painterResource(id = iconRes),
           contentDescription = null,
           tint = Color.White,
-          modifier = Modifier.size(14.dp)
+          modifier = Modifier.size(metrics.badgeIconSize)
         )
       }
 
-      Spacer(modifier = Modifier.width(6.dp))
+      Spacer(modifier = Modifier.width(4.dp))
 
       Text(
         text = label,
-        fontSize = 10.5.sp,
+        fontSize = metrics.badgeFontSize,
         fontWeight = FontWeight.SemiBold,
-        lineHeight = 13.sp,
+        lineHeight = metrics.badgeLineHeight,
         color = TextWhite,
-        fontFamily = MontserratFamily
+        fontFamily = MontserratFamily,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis
       )
     }
   }
@@ -401,15 +638,16 @@ private fun FeatureBadgeItem(
  */
 @Composable
 private fun CustomerPortalCard(
+  metrics: WelcomeLayoutMetrics,
   modifier: Modifier = Modifier,
   onContinueClick: () -> Unit
 ) {
-  val cardShape = RoundedCornerShape(20.dp)
+  val cardShape = RoundedCornerShape(metrics.cardCornerRadius)
 
   Card(
     modifier = modifier
       .shadow(
-        elevation = 12.dp,
+        elevation = 10.dp,
         shape = cardShape,
         ambientColor = PinkGlow,
         spotColor = PinkPrimary.copy(alpha = 0.4f)
@@ -438,12 +676,17 @@ private fun CustomerPortalCard(
       Row(
         modifier = Modifier
           .fillMaxWidth()
-          .padding(start = 16.dp, top = 14.dp, end = 8.dp, bottom = 10.dp),
+          .padding(
+            start = metrics.cardPadStart,
+            top = metrics.cardPadTop,
+            end = metrics.cardPadEnd,
+            bottom = metrics.cardPadBottom
+          ),
         verticalAlignment = Alignment.CenterVertically
       ) {
         // Left Column: Text & CTA button
         Column(
-          modifier = Modifier.weight(1.3f)
+          modifier = Modifier.weight(1.35f)
         ) {
           // Tag + Icon Header
           Row(
@@ -452,8 +695,8 @@ private fun CustomerPortalCard(
             // Pink Rounded User Badge
             Box(
               modifier = Modifier
-                .size(34.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .size(metrics.cardBadgeSize)
+                .clip(RoundedCornerShape(8.dp))
                 .background(
                   brush = Brush.linearGradient(
                     listOf(PinkPrimary, PinkDeep)
@@ -465,23 +708,23 @@ private fun CustomerPortalCard(
                 painter = painterResource(id = SalonMateAssets.userSearchIcon),
                 contentDescription = stringResource(R.string.content_desc_customer_badge),
                 tint = Color.White,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(metrics.cardBadgeIconSize)
               )
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
 
             // Pill tag
             Box(
               modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(10.dp))
                 .background(PinkTagBg)
-                .padding(horizontal = 10.dp, vertical = 4.dp)
+                .padding(horizontal = metrics.cardTagPadH, vertical = metrics.cardTagPadV)
             ) {
               Text(
                 text = stringResource(R.string.customer_portal_tag),
                 color = Color(0xFFFF66A8),
-                fontSize = 9.5.sp,
+                fontSize = metrics.cardTagFontSize,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.4.sp,
                 fontFamily = MontserratFamily
@@ -489,13 +732,13 @@ private fun CustomerPortalCard(
             }
           }
 
-          Spacer(modifier = Modifier.height(8.dp))
+          Spacer(modifier = Modifier.height(metrics.cardTitleTopSpace))
 
           // "CUSTOMER" Title
           Text(
             text = stringResource(R.string.customer_portal_title),
             color = TextWhite,
-            fontSize = 22.sp,
+            fontSize = metrics.customerTitleSize,
             fontWeight = FontWeight.Bold,
             fontFamily = MontserratFamily
           )
@@ -506,12 +749,12 @@ private fun CustomerPortalCard(
           Text(
             text = stringResource(R.string.customer_portal_desc),
             color = TextSecondary,
-            fontSize = 11.5.sp,
-            lineHeight = 15.sp,
+            fontSize = metrics.cardDescFontSize,
+            lineHeight = metrics.cardDescLineHeight,
             fontFamily = MontserratFamily
           )
 
-          Spacer(modifier = Modifier.height(10.dp))
+          Spacer(modifier = Modifier.height(metrics.cardButtonTopSpace))
 
           // "Continue as Customer →" Gradient Button
           Box(
@@ -531,7 +774,7 @@ private fun CustomerPortalCard(
                 indication = ripple(color = Color.White),
                 onClick = onContinueClick
               )
-              .padding(horizontal = 16.dp, vertical = 9.dp)
+              .padding(horizontal = metrics.cardButtonPadH, vertical = metrics.cardButtonPadV)
               .testTag("continue_as_customer_button"),
             contentAlignment = Alignment.Center
           ) {
@@ -541,16 +784,16 @@ private fun CustomerPortalCard(
               Text(
                 text = stringResource(R.string.btn_continue_customer),
                 color = Color.White,
-                fontSize = 12.5.sp,
+                fontSize = metrics.customerButtonFontSize,
                 fontWeight = FontWeight.Bold,
                 fontFamily = MontserratFamily
               )
-              Spacer(modifier = Modifier.width(6.dp))
+              Spacer(modifier = Modifier.width(5.dp))
               Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                 contentDescription = stringResource(R.string.content_desc_arrow),
                 tint = Color.White,
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(14.dp)
               )
             }
           }
@@ -559,8 +802,8 @@ private fun CustomerPortalCard(
         // Right Photo: Male customer in cape + female facial customer
         Box(
           modifier = Modifier
-            .weight(1.0f)
-            .height(148.dp),
+            .weight(0.95f)
+            .height(metrics.cardPhotoHeight),
           contentAlignment = Alignment.Center
         ) {
           CustomerCardPhoto(modifier = Modifier.fillMaxSize())
@@ -568,7 +811,7 @@ private fun CustomerPortalCard(
       }
 
       // Bottom Section: 7-item quick service category access
-      CustomerServicesStrip()
+      CustomerServicesStrip(metrics = metrics)
     }
   }
 }
@@ -579,7 +822,7 @@ private fun CustomerPortalCard(
  * Nail Care, Spa & Relaxation, Beard & Grooming, More Services.
  */
 @Composable
-private fun CustomerServicesStrip() {
+private fun CustomerServicesStrip(metrics: WelcomeLayoutMetrics) {
   val horizontalScroll = rememberScrollState()
 
   Box(
@@ -590,54 +833,61 @@ private fun CustomerServicesStrip() {
         width = 0.8.dp,
         color = Color(0xFF2E132D)
       )
-      .padding(vertical = 8.dp)
+      .padding(vertical = metrics.stripPadV)
   ) {
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .horizontalScroll(horizontalScroll)
-        .padding(horizontal = 8.dp),
+        .padding(horizontal = 6.dp),
       verticalAlignment = Alignment.CenterVertically
     ) {
       ServiceStripItem(
         iconRes = SalonMateAssets.scissorsIcon,
-        title = stringResource(R.string.service_haircut)
+        title = stringResource(R.string.service_haircut),
+        metrics = metrics
       )
-      StripDivider()
+      StripDivider(height = metrics.stripDividerHeight)
 
       ServiceStripItem(
         iconRes = SalonMateAssets.facialIcon,
-        title = stringResource(R.string.service_facial)
+        title = stringResource(R.string.service_facial),
+        metrics = metrics
       )
-      StripDivider()
+      StripDivider(height = metrics.stripDividerHeight)
 
       ServiceStripItem(
         iconRes = SalonMateAssets.makeupIcon,
-        title = stringResource(R.string.service_makeup)
+        title = stringResource(R.string.service_makeup),
+        metrics = metrics
       )
-      StripDivider()
+      StripDivider(height = metrics.stripDividerHeight)
 
       ServiceStripItem(
         iconRes = SalonMateAssets.nailIcon,
-        title = stringResource(R.string.service_nail)
+        title = stringResource(R.string.service_nail),
+        metrics = metrics
       )
-      StripDivider()
+      StripDivider(height = metrics.stripDividerHeight)
 
       ServiceStripItem(
         iconRes = SalonMateAssets.spaIcon,
-        title = stringResource(R.string.service_spa)
+        title = stringResource(R.string.service_spa),
+        metrics = metrics
       )
-      StripDivider()
+      StripDivider(height = metrics.stripDividerHeight)
 
       ServiceStripItem(
         iconRes = SalonMateAssets.beardIcon,
-        title = stringResource(R.string.service_beard)
+        title = stringResource(R.string.service_beard),
+        metrics = metrics
       )
-      StripDivider()
+      StripDivider(height = metrics.stripDividerHeight)
 
       ServiceStripItem(
         iconRes = SalonMateAssets.moreIcon,
-        title = stringResource(R.string.service_more)
+        title = stringResource(R.string.service_more),
+        metrics = metrics
       )
     }
   }
@@ -646,26 +896,27 @@ private fun CustomerServicesStrip() {
 @Composable
 private fun ServiceStripItem(
   iconRes: Int,
-  title: String
+  title: String,
+  metrics: WelcomeLayoutMetrics
 ) {
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     modifier = Modifier
-      .padding(horizontal = 8.dp)
-      .width(58.dp)
+      .padding(horizontal = 5.dp)
+      .width(metrics.stripItemWidth)
   ) {
     Icon(
       painter = painterResource(id = iconRes),
       contentDescription = title,
       tint = PinkPrimary,
-      modifier = Modifier.size(19.dp)
+      modifier = Modifier.size(metrics.stripIconSize)
     )
-    Spacer(modifier = Modifier.height(3.dp))
+    Spacer(modifier = Modifier.height(2.dp))
     Text(
       text = title,
-      fontSize = 8.5.sp,
+      fontSize = metrics.stripTextSize,
       fontWeight = FontWeight.Medium,
-      lineHeight = 11.sp,
+      lineHeight = metrics.stripLineHeight,
       color = TextSecondary,
       textAlign = TextAlign.Center,
       fontFamily = MontserratFamily
@@ -674,11 +925,11 @@ private fun ServiceStripItem(
 }
 
 @Composable
-private fun StripDivider() {
+private fun StripDivider(height: Dp) {
   Box(
     modifier = Modifier
       .width(1.dp)
-      .height(24.dp)
+      .height(height)
       .background(Color(0xFF33152F))
   )
 }
@@ -691,15 +942,16 @@ private fun StripDivider() {
  */
 @Composable
 private fun OwnerPortalCard(
+  metrics: WelcomeLayoutMetrics,
   modifier: Modifier = Modifier,
   onContinueClick: () -> Unit
 ) {
-  val cardShape = RoundedCornerShape(20.dp)
+  val cardShape = RoundedCornerShape(metrics.cardCornerRadius)
 
   Card(
     modifier = modifier
       .shadow(
-        elevation = 12.dp,
+        elevation = 10.dp,
         shape = cardShape,
         ambientColor = GoldPrimary.copy(alpha = 0.3f),
         spotColor = GoldAccent.copy(alpha = 0.4f)
@@ -726,12 +978,17 @@ private fun OwnerPortalCard(
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(start = 16.dp, top = 14.dp, end = 8.dp, bottom = 14.dp),
+        .padding(
+          start = metrics.cardPadStart,
+          top = metrics.cardPadTop,
+          end = metrics.cardPadEnd,
+          bottom = metrics.cardPadBottom
+        ),
       verticalAlignment = Alignment.CenterVertically
     ) {
       // Left Column: Text & CTA button
       Column(
-        modifier = Modifier.weight(1.3f)
+        modifier = Modifier.weight(1.35f)
       ) {
         // Tag + Icon Header
         Row(
@@ -740,8 +997,8 @@ private fun OwnerPortalCard(
           // Gold Rounded Shop Badge
           Box(
             modifier = Modifier
-              .size(34.dp)
-              .clip(RoundedCornerShape(10.dp))
+              .size(metrics.cardBadgeSize)
+              .clip(RoundedCornerShape(8.dp))
               .background(
                 brush = Brush.linearGradient(
                   listOf(GoldPrimary, GoldAccent)
@@ -753,23 +1010,23 @@ private fun OwnerPortalCard(
               painter = painterResource(id = SalonMateAssets.storefrontIcon),
               contentDescription = stringResource(R.string.content_desc_owner_badge),
               tint = Color(0xFF1F1504),
-              modifier = Modifier.size(19.dp)
+              modifier = Modifier.size(metrics.cardBadgeIconSize)
             )
           }
 
-          Spacer(modifier = Modifier.width(8.dp))
+          Spacer(modifier = Modifier.width(6.dp))
 
           // Pill tag
           Box(
             modifier = Modifier
-              .clip(RoundedCornerShape(12.dp))
+              .clip(RoundedCornerShape(10.dp))
               .background(GoldTagBg)
-              .padding(horizontal = 10.dp, vertical = 4.dp)
+              .padding(horizontal = metrics.cardTagPadH, vertical = metrics.cardTagPadV)
           ) {
             Text(
               text = stringResource(R.string.owner_portal_tag),
               color = GoldPrimary,
-              fontSize = 9.5.sp,
+              fontSize = metrics.cardTagFontSize,
               fontWeight = FontWeight.Bold,
               letterSpacing = 0.4.sp,
               fontFamily = MontserratFamily
@@ -777,13 +1034,13 @@ private fun OwnerPortalCard(
           }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(metrics.cardTitleTopSpace))
 
         // "SALON / PARLOUR OWNER" Title
         Text(
           text = stringResource(R.string.owner_portal_title),
           color = TextWhite,
-          fontSize = 18.5.sp,
+          fontSize = metrics.ownerTitleSize,
           fontWeight = FontWeight.Bold,
           fontFamily = MontserratFamily
         )
@@ -794,12 +1051,12 @@ private fun OwnerPortalCard(
         Text(
           text = stringResource(R.string.owner_portal_desc),
           color = Color(0xFFDFD7CA),
-          fontSize = 11.5.sp,
-          lineHeight = 15.sp,
+          fontSize = metrics.cardDescFontSize,
+          lineHeight = metrics.cardDescLineHeight,
           fontFamily = MontserratFamily
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(metrics.cardButtonTopSpace))
 
         // "Continue as Salon / Parlour Owner →" Warm Gold Gradient Button
         Box(
@@ -819,7 +1076,7 @@ private fun OwnerPortalCard(
               indication = ripple(color = Color(0xFF261904)),
               onClick = onContinueClick
             )
-            .padding(horizontal = 14.dp, vertical = 9.dp)
+            .padding(horizontal = metrics.cardButtonPadH, vertical = metrics.cardButtonPadV)
             .testTag("continue_as_owner_button"),
           contentAlignment = Alignment.Center
         ) {
@@ -829,16 +1086,16 @@ private fun OwnerPortalCard(
             Text(
               text = stringResource(R.string.btn_continue_owner),
               color = Color(0xFF1D1303),
-              fontSize = 11.5.sp,
+              fontSize = metrics.ownerButtonFontSize,
               fontWeight = FontWeight.ExtraBold,
               fontFamily = MontserratFamily
             )
-            Spacer(modifier = Modifier.width(6.dp))
+            Spacer(modifier = Modifier.width(5.dp))
             Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowForward,
               contentDescription = stringResource(R.string.content_desc_arrow),
               tint = Color(0xFF1D1303),
-              modifier = Modifier.size(15.dp)
+              modifier = Modifier.size(14.dp)
             )
           }
         }
@@ -847,8 +1104,8 @@ private fun OwnerPortalCard(
       // Right Photo: Professional salon workers in uniforms
       Box(
         modifier = Modifier
-          .weight(1.0f)
-          .height(148.dp),
+          .weight(0.95f)
+          .height(metrics.cardPhotoHeight),
         contentAlignment = Alignment.Center
       ) {
         OwnerCardPhoto(modifier = Modifier.fillMaxSize())
@@ -863,6 +1120,7 @@ private fun OwnerPortalCard(
  */
 @Composable
 private fun FooterLinksSection(
+  metrics: WelcomeLayoutMetrics,
   modifier: Modifier = Modifier,
   onAboutClick: () -> Unit,
   onSupportClick: () -> Unit,
@@ -876,6 +1134,7 @@ private fun FooterLinksSection(
     FooterLinkItem(
       title = stringResource(R.string.footer_about),
       icon = Icons.Outlined.Info,
+      metrics = metrics,
       testTag = "footer_about_salonmate",
       onClick = onAboutClick
     )
@@ -883,13 +1142,14 @@ private fun FooterLinksSection(
     Text(
       text = "|",
       color = Color(0xFF4A4252),
-      fontSize = 13.sp,
-      modifier = Modifier.padding(horizontal = 8.dp)
+      fontSize = metrics.footerFontSize,
+      modifier = Modifier.padding(horizontal = 6.dp)
     )
 
     FooterLinkItem(
       title = stringResource(R.string.footer_support),
       icon = Icons.Outlined.HelpOutline,
+      metrics = metrics,
       testTag = "footer_help_support",
       onClick = onSupportClick
     )
@@ -897,13 +1157,14 @@ private fun FooterLinksSection(
     Text(
       text = "|",
       color = Color(0xFF4A4252),
-      fontSize = 13.sp,
-      modifier = Modifier.padding(horizontal = 8.dp)
+      fontSize = metrics.footerFontSize,
+      modifier = Modifier.padding(horizontal = 6.dp)
     )
 
     FooterLinkItem(
       title = stringResource(R.string.footer_privacy),
       icon = Icons.Outlined.Shield,
+      metrics = metrics,
       testTag = "footer_privacy_policy",
       onClick = onPrivacyClick
     )
@@ -914,6 +1175,7 @@ private fun FooterLinksSection(
 private fun FooterLinkItem(
   title: String,
   icon: androidx.compose.ui.graphics.vector.ImageVector,
+  metrics: WelcomeLayoutMetrics,
   testTag: String,
   onClick: () -> Unit
 ) {
@@ -926,20 +1188,20 @@ private fun FooterLinkItem(
         indication = ripple(color = GoldPrimary),
         onClick = onClick
       )
-      .padding(horizontal = 4.dp, vertical = 6.dp)
+      .padding(horizontal = 4.dp, vertical = 4.dp)
       .testTag(testTag)
   ) {
     Icon(
       imageVector = icon,
       contentDescription = title,
       tint = TextSecondary,
-      modifier = Modifier.size(13.dp)
+      modifier = Modifier.size(metrics.footerIconSize)
     )
-    Spacer(modifier = Modifier.width(4.dp))
+    Spacer(modifier = Modifier.width(3.dp))
     Text(
       text = title,
       color = TextSecondary,
-      fontSize = 11.5.sp,
+      fontSize = metrics.footerFontSize,
       fontWeight = FontWeight.Medium,
       fontFamily = MontserratFamily
     )
