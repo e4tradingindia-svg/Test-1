@@ -23,15 +23,19 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Business
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Badge
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -95,6 +99,7 @@ fun CustomerPortalScreen(
     sessionManager: SessionManager,
     onNavigateToEditProfile: () -> Unit,
     onNavigateToSalonDetails: (String) -> Unit,
+    onNavigateToMyBookings: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val customer by customerRepository.observeCustomer(customerId).collectAsState(initial = null)
@@ -102,6 +107,7 @@ fun CustomerPortalScreen(
 
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryFilter by remember { mutableStateOf("All (Men & Women)") }
+    var showTopBarMenu by remember { mutableStateOf(false) }
 
     val categoryFilters = listOf(
         "All (Men & Women)",
@@ -163,6 +169,49 @@ fun CustomerPortalScreen(
                             contentDescription = "Logout",
                             tint = GoldPrimary
                         )
+                    }
+
+                    Box {
+                        IconButton(
+                            onClick = { showTopBarMenu = true },
+                            modifier = Modifier.testTag("btn_customer_portal_menu")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "More Options",
+                                tint = GoldPrimary
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showTopBarMenu,
+                            onDismissRequest = { showTopBarMenu = false },
+                            modifier = Modifier
+                                .background(LuxuryCardBg)
+                                .border(1.dp, GoldBorder, RoundedCornerShape(8.dp))
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = "My Bookings",
+                                        color = TextPrimary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarMonth,
+                                        contentDescription = null,
+                                        tint = GoldPrimary
+                                    )
+                                },
+                                onClick = {
+                                    showTopBarMenu = false
+                                    onNavigateToMyBookings()
+                                },
+                                modifier = Modifier.testTag("menu_item_my_bookings")
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BlackBackground)

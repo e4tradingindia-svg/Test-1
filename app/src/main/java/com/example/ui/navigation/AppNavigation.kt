@@ -11,6 +11,7 @@ import com.example.data.repository.SalonRepository
 import com.example.data.session.SessionManager
 import com.example.ui.screens.customer.CustomerEditProfileScreen
 import com.example.ui.screens.customer.CustomerLoginScreen
+import com.example.ui.screens.customer.CustomerMyBookingsScreen
 import com.example.ui.screens.customer.CustomerPortalScreen
 import com.example.ui.screens.customer.CustomerRegisterScreen
 import com.example.ui.screens.customer.CustomerViewSalonScreen
@@ -26,6 +27,7 @@ object Routes {
     const val CUSTOMER_REGISTER = "customer_register"
     const val CUSTOMER_PORTAL = "customer_portal/{customerId}"
     const val CUSTOMER_EDIT_PROFILE = "customer_edit_profile/{customerId}"
+    const val CUSTOMER_MY_BOOKINGS = "customer_my_bookings/{customerId}"
     const val CUSTOMER_VIEW_SALON = "customer_view_salon/{salonId}/{customerId}"
     const val OWNER_LOGIN = "owner_login"
     const val OWNER_REGISTER = "owner_register"
@@ -34,6 +36,7 @@ object Routes {
 
     fun customerPortal(customerId: String) = "customer_portal/$customerId"
     fun customerEditProfile(customerId: String) = "customer_edit_profile/$customerId"
+    fun customerMyBookings(customerId: String) = "customer_my_bookings/$customerId"
     fun customerViewSalon(salonId: String, customerId: String) = "customer_view_salon/$salonId/$customerId"
     fun ownerDashboard(salonId: String) = "owner_dashboard/$salonId"
     fun ownerEditProfile(salonId: String) = "owner_edit_profile/$salonId"
@@ -119,11 +122,27 @@ fun AppNavigation(
                 onNavigateToSalonDetails = { salonId ->
                     navController.navigate(Routes.customerViewSalon(salonId, customerId))
                 },
+                onNavigateToMyBookings = {
+                    navController.navigate(Routes.customerMyBookings(customerId))
+                },
                 onLogout = {
                     navController.navigate(Routes.ROLE_SELECTION) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+
+        // Customer My Bookings
+        composable(
+            route = Routes.CUSTOMER_MY_BOOKINGS,
+            arguments = listOf(navArgument("customerId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val customerId = backStackEntry.arguments?.getString("customerId") ?: ""
+            CustomerMyBookingsScreen(
+                customerId = customerId,
+                salonRepository = salonRepository,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
